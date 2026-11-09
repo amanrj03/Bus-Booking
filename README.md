@@ -71,3 +71,4 @@ bus-booking-management-system/
 ## 4. Setup & Installation (Upcoming)
 
 Detailed instructions for local database setup, Prisma migrations, and running the frontend and backend servers will be documented as each module is scaffolded.
+
