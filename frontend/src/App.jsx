@@ -8,7 +8,10 @@ import {
   CalendarDaysIcon,
   MapPinIcon,
 } from '@heroicons/react/24/solid';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import MainLayout from './layouts/MainLayout';
+import AuthModal from './components/auth/AuthModal';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 import { Button, Badge, Input, Card } from './components/ui';
 
 function HomePreview() {
@@ -115,17 +118,42 @@ function PlaceholderView({ title }) {
   );
 }
 
+function AppShell() {
+  const { user, openAuthModal, logout } = useAuth();
+
+  return (
+    <MainLayout user={user} onOpenAuth={openAuthModal} onLogout={logout}>
+      <Routes>
+        <Route path="/" element={<HomePreview />} />
+        <Route path="/search" element={<PlaceholderView title="Search Results & Filters" />} />
+        <Route
+          path="/my-bookings"
+          element={
+            <ProtectedRoute>
+              <PlaceholderView title="Manage My Bookings & E-Tickets" />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN', 'OPERATOR']}>
+              <PlaceholderView title="Admin & Operator Management Portal" />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+      <AuthModal />
+    </MainLayout>
+  );
+}
+
 export default function App() {
   return (
     <BrowserRouter>
-      <MainLayout>
-        <Routes>
-          <Route path="/" element={<HomePreview />} />
-          <Route path="/search" element={<PlaceholderView title="Search Results & Filters" />} />
-          <Route path="/my-bookings" element={<PlaceholderView title="Manage My Bookings & E-Tickets" />} />
-          <Route path="/admin" element={<PlaceholderView title="Admin & Operator Management Portal" />} />
-        </Routes>
-      </MainLayout>
+      <AuthProvider>
+        <AppShell />
+      </AuthProvider>
     </BrowserRouter>
   );
 }
