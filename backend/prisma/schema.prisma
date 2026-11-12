@@ -1,0 +1,331 @@
+// Prisma schema for Bus Booking Management System
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  OPERATOR
+  PASSENGER
+}
+
+enum BusType {
+  AC_SLEEPER_2X1
+  AC_SEATER_2X2
+  NON_AC_SEATER_2X2
+}
+
+enum SeatType {
+  WINDOW
+  AISLE
+  MIDDLE
+  SLEEPER
+}
+
+enum TripStatus {
+  SCHEDULED
+  RUNNING
+  COMPLETED
+  CANCELLED
+}
+
+enum SeatStatus {
+  AVAILABLE
+  LOCKED
+  BOOKED
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  UPI
+  NET_BANKING
+  DEBIT_CARD
+  CREDIT_CARD
+  WALLET
+}
+
+enum PaymentStatus {
+  SUCCESS
+  REFUNDED
+}
+
+enum RefundStatus {
+  PROCESSED
+}
+
+model User {
+  id           String     @id @default(uuid())
+  name         String
+  email        String     @unique
+  passwordHash String
+  role         Role       @default(PASSENGER)
+  phone        String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  operator     Operator?
+  bookings     Booking[]
+  auditLogs    AuditLog[]
+
+  @@index([role])
+  @@index([email])
+}
+
+model Operator {
+  id           String    @id @default(uuid())
+  userId       String?   @unique
+  name         String
+  companyName  String
+  contactEmail String
+  contactPhone String
+  logoUrl      String?
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  user         User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  buses        Bus[]
+}
+
+model Bus {
+  id          String    @id @default(uuid())
+  operatorId  String
+  busNumber   String    @unique
+  busType     BusType   @default(AC_SEATER_2X2)
+  totalSeats  Int
+  deckCount   Int       @default(1)
+  amenities   Json?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  operator    Operator  @relation(fields: [operatorId], references: [id], onDelete: Cascade)
+  seats       Seat[]
+  trips       Trip[]
+
+  @@index([operatorId])
+  @@index([busType])
+}
+
+model Seat {
+  id           String     @id @default(uuid())
+  busId        String
+  seatNumber   String
+  deck         Int        @default(1)
+  row          Int
+  column       Int
+  seatType     SeatType   @default(WINDOW)
+  isAccessible Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+
+  bus          Bus        @relation(fields: [busId], references: [id], onDelete: Cascade)
+  tripSeats    TripSeat[]
+
+  @@unique([busId, seatNumber])
+  @@index([busId])
+}
+
+model Route {
+  id               String      @id @default(uuid())
+  sourceCity       String
+  destinationCity  String
+  distanceKm       Decimal     @db.Decimal(8, 2)
+  estimatedMinutes Int
+  isActive         Boolean     @default(true)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  routeStops       RouteStop[]
+  trips            Trip[]
+
+  @@unique([sourceCity, destinationCity])
+  @@index([sourceCity, destinationCity])
+}
+
+model Stop {
+  id          String      @id @default(uuid())
+  city        String
+  stationName String
+  landmark    String?
+  address     String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  routeStops  RouteStop[]
+
+  @@index([city])
+}
+
+model RouteStop {
+  id                         String   @id @default(uuid())
+  routeId                    String
+  stopId                     String
+  stopOrder                  Int
+  durationFromOriginMinutes  Int
+  distanceFromOriginKm       Decimal  @db.Decimal(8, 2)
+  createdAt                  DateTime @default(now())
+
+  route                      Route    @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  stop                       Stop     @relation(fields: [stopId], references: [id], onDelete: Cascade)
+
+  @@unique([routeId, stopOrder])
+  @@index([routeId])
+  @@index([stopId])
+}
+
+model Trip {
+  id            String     @id @default(uuid())
+  routeId       String
+  busId         String
+  departureTime DateTime
+  arrivalTime   DateTime
+  baseFare      Decimal    @db.Decimal(10, 2)
+  status        TripStatus @default(SCHEDULED)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  route         Route      @relation(fields: [routeId], references: [id], onDelete: Restrict)
+  bus           Bus        @relation(fields: [busId], references: [id], onDelete: Restrict)
+  tripSeats     TripSeat[]
+  bookings      Booking[]
+
+  @@index([routeId, departureTime])
+  @@index([status])
+  @@index([busId])
+}
+
+model TripSeat {
+  id               String        @id @default(uuid())
+  tripId           String
+  seatId           String
+  seatNumber       String
+  price            Decimal       @db.Decimal(10, 2)
+  status           SeatStatus    @default(AVAILABLE)
+  lockedUntil      DateTime?
+  currentBookingId String?
+
+  trip             Trip          @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  seat             Seat          @relation(fields: [seatId], references: [id], onDelete: Restrict)
+  bookingSeats     BookingSeat[]
+
+  @@unique([tripId, seatNumber])
+  @@unique([tripId, seatId])
+  @@index([tripId, status])
+  @@index([status, lockedUntil])
+}
+
+model Booking {
+  id           String        @id @default(uuid())
+  pnr          String        @unique
+  userId       String?
+  tripId       String
+  totalAmount  Decimal       @db.Decimal(10, 2)
+  status       BookingStatus @default(CONFIRMED)
+  contactEmail String
+  contactPhone String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  user         User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  trip         Trip          @relation(fields: [tripId], references: [id], onDelete: Restrict)
+  passengers   BookingPassenger[]
+  seats        BookingSeat[]
+  payment      Payment?
+  cancellation Cancellation?
+
+  @@index([userId])
+  @@index([tripId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([pnr])
+}
+
+model BookingPassenger {
+  id           String        @id @default(uuid())
+  bookingId    String
+  fullName     String
+  age          Int
+  gender       String
+  seatNumber   String
+  createdAt    DateTime      @default(now())
+
+  booking      Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingSeats BookingSeat[]
+
+  @@index([bookingId])
+}
+
+model BookingSeat {
+  id          String        @id @default(uuid())
+  bookingId   String
+  passengerId String
+  tripSeatId  String
+  seatNumber  String
+  seatPrice   Decimal       @db.Decimal(10, 2)
+  status      BookingStatus @default(CONFIRMED)
+  createdAt   DateTime      @default(now())
+
+  booking     Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  passenger   BookingPassenger @relation(fields: [passengerId], references: [id], onDelete: Cascade)
+  tripSeat    TripSeat      @relation(fields: [tripSeatId], references: [id], onDelete: Restrict)
+
+  @@index([bookingId])
+  @@index([passengerId])
+  @@index([tripSeatId])
+  @@index([status])
+}
+
+model Payment {
+  id                   String        @id @default(uuid())
+  bookingId            String        @unique
+  amount               Decimal       @db.Decimal(10, 2)
+  paymentMethod        PaymentMethod @default(UPI)
+  paymentStatus        PaymentStatus @default(SUCCESS)
+  transactionReference String
+  createdAt            DateTime      @default(now())
+
+  booking              Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([paymentStatus])
+  @@index([createdAt])
+}
+
+model Cancellation {
+  id                 String       @id @default(uuid())
+  bookingId          String       @unique
+  cancellationFee    Decimal      @db.Decimal(10, 2)
+  refundAmount       Decimal      @db.Decimal(10, 2)
+  reason             String
+  refundStatus       RefundStatus @default(PROCESSED)
+  createdAt          DateTime     @default(now())
+
+  booking            Booking      @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String
+  entity    String
+  entityId  String?
+  details   Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([entity, entityId])
+  @@index([userId])
+  @@index([createdAt])
+}

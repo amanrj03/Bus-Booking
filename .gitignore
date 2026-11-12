@@ -42,3 +42,9 @@ temp/
 
 UI_INSPIRATION/
 
+# Assistant & tooling artifacts
+.agents/
+.claude/
+.windsurf/
+skills-lock.json
+
