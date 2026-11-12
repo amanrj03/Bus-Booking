@@ -18,7 +18,13 @@ function validateRequest(schema, target = 'body') {
       return next(new AppError('Validation failed', 400, formattedErrors));
     }
 
-    req[target] = result.data;
+    if (target === 'query') {
+      // Express 5 exposes req.query as a read-only getter
+      req.validatedQuery = result.data;
+    } else {
+      req[target] = result.data;
+    }
+
     return next();
   };
 }
