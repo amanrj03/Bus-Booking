@@ -6,9 +6,17 @@ const {
   scheduleTripSchema,
   updateTripSchema,
   listAdminTripsQuerySchema,
+  searchTripsQuerySchema,
 } = require('../validators/trip.validator');
 
 const router = express.Router();
+
+// Public trip search (registered before /:id to avoid collision)
+router.get(
+  '/search',
+  validateRequest(searchTripsQuerySchema, 'query'),
+  tripController.searchTrips
+);
 
 // Management trip listing (ADMIN / OPERATOR)
 router.get(
@@ -18,6 +26,9 @@ router.get(
   validateRequest(listAdminTripsQuerySchema, 'query'),
   tripController.listTrips
 );
+
+// Public trip overview
+router.get('/:id', tripController.getTripById);
 
 // Schedule trip with automatic TripSeat inventory creation
 router.post(

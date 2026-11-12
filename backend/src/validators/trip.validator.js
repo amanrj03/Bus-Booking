@@ -34,8 +34,40 @@ const listAdminTripsQuerySchema = z.object({
   toDate: z.coerce.date().optional(),
 });
 
+const searchTripsQuerySchema = z
+  .object({
+    sourceCity: z.string().trim().min(1).optional(),
+    destinationCity: z.string().trim().min(1).optional(),
+    date: z
+      .string()
+      .trim()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'date must be in YYYY-MM-DD format')
+      .optional(),
+    minPrice: z.coerce.number().min(0).optional(),
+    maxPrice: z.coerce.number().positive().optional(),
+    busType: z.enum(['AC_SLEEPER_2X1', 'AC_SEATER_2X2', 'NON_AC_SEATER_2X2']).optional(),
+    operatorId: z.string().uuid('Invalid operatorId UUID').optional(),
+    departureWindow: z.enum(['MORNING', 'AFTERNOON', 'EVENING', 'NIGHT']).optional(),
+    sortBy: z
+      .enum(['departure_asc', 'departure_desc', 'price_asc', 'price_desc', 'duration_asc'])
+      .default('departure_asc'),
+    page: z.coerce.number().int().min(1).default(1),
+    limit: z.coerce.number().int().min(1).max(50).default(15),
+  })
+  .refine(
+    (data) =>
+      data.minPrice === undefined ||
+      data.maxPrice === undefined ||
+      data.minPrice <= data.maxPrice,
+    {
+      message: 'minPrice cannot exceed maxPrice',
+      path: ['maxPrice'],
+    }
+  );
+
 module.exports = {
   scheduleTripSchema,
   updateTripSchema,
   listAdminTripsQuerySchema,
+  searchTripsQuerySchema,
 };

@@ -274,8 +274,259 @@ async function updateTrip(tripId, data, actorUserId, ipAddress, userContext) {
   return updated;
 }
 
+const DEPARTURE_WINDOWS = {
+  MORNING: { startHour: 5, endHour: 11 }, // 05:00 - 11:59
+  AFTERNOON: { startHour: 12, endHour: 16 }, // 12:00 - 16:59
+  EVENING: { startHour: 17, endHour: 20 }, // 17:00 - 20:59
+  NIGHT: { startHour: 21, endHour: 4 }, // 21:00 - 04:59
+};
+
+/**
+ * Checks whether a departure timestamp (UTC hour) falls into the selected time-of-day window.
+ */
+function matchesDepartureWindow(departureTime, windowName) {
+  if (!windowName || !DEPARTURE_WINDOWS[windowName]) {
+    return true;
+  }
+  const hour = new Date(departureTime).getUTCHours();
+  const { startHour, endHour } = DEPARTURE_WINDOWS[windowName];
+  if (startHour <= endHour) {
+    return hour >= startHour && hour <= endHour;
+  }
+  // Wraps past midnight (e.g. NIGHT: 21..23 or 0..4)
+  return hour >= startHour || hour <= endHour;
+}
+
+/**
+ * Builds Prisma where-clause for public trip search with city, date, bus type, operator, and price filters.
+ */
+function buildTripSearchWhere(query, now = new Date()) {
+  const { sourceCity, destinationCity, date, minPrice, maxPrice, busType, operatorId } = query;
+
+  const where = {
+    status: 'SCHEDULED',
+  };
+
+  // Route matching
+  const routeWhere = { isActive: true };
+  if (sourceCity) {
+    routeWhere.sourceCity = { contains: sourceCity, mode: 'insensitive' };
+  }
+  if (destinationCity) {
+    routeWhere.destinationCity = { contains: destinationCity, mode: 'insensitive' };
+  }
+  where.route = routeWhere;
+
+  // Bus / Operator filters
+  const busWhere = { isActive: true };
+  if (busType) {
+    busWhere.busType = busType;
+  }
+  if (operatorId) {
+    busWhere.operatorId = operatorId;
+  }
+  where.bus = busWhere;
+
+  // Date window matching
+  if (date) {
+    const startOfDay = new Date(`${date}T00:00:00.000Z`);
+    const endOfDay = new Date(`${date}T23:59:59.999Z`);
+    where.departureTime = { gte: startOfDay, lte: endOfDay };
+  } else {
+    where.departureTime = { gte: now };
+  }
+
+  // Price range
+  if (minPrice !== undefined || maxPrice !== undefined) {
+    where.baseFare = {};
+    if (minPrice !== undefined) where.baseFare.gte = minPrice;
+    if (maxPrice !== undefined) where.baseFare.lte = maxPrice;
+  }
+
+  return where;
+}
+
+/**
+ * Maps public search sort keys to Prisma orderBy objects.
+ */
+function getTripSearchOrderBy(sortBy) {
+  switch (sortBy) {
+    case 'departure_desc':
+      return { departureTime: 'desc' };
+    case 'price_asc':
+      return { baseFare: 'asc' };
+    case 'price_desc':
+      return { baseFare: 'desc' };
+    case 'duration_asc':
+      return { route: { estimatedMinutes: 'asc' } };
+    case 'departure_asc':
+    default:
+      return { departureTime: 'asc' };
+  }
+}
+
+/**
+ * Public trip search supporting Indian city-pair queries, travel date, INR price bounds,
+ * bus type, operator, departure time windows, and pagination.
+ */
+async function searchPublicTrips(query) {
+  const { page = 1, limit = 15, departureWindow, sortBy = 'departure_asc' } = query;
+  const now = new Date();
+  const where = buildTripSearchWhere(query, now);
+  const orderBy = getTripSearchOrderBy(sortBy);
+
+  const include = {
+    route: {
+      select: {
+        id: true,
+        sourceCity: true,
+        destinationCity: true,
+        distanceKm: true,
+        estimatedMinutes: true,
+        routeStops: {
+          orderBy: { stopOrder: 'asc' },
+          include: {
+            stop: {
+              select: { id: true, city: true, stationName: true, landmark: true },
+            },
+          },
+        },
+      },
+    },
+    bus: {
+      select: {
+        id: true,
+        busNumber: true,
+        busType: true,
+        totalSeats: true,
+        deckCount: true,
+        amenities: true,
+        operator: {
+          select: { id: true, name: true, companyName: true, logoUrl: true },
+        },
+      },
+    },
+    tripSeats: {
+      select: { status: true, lockedUntil: true, price: true },
+    },
+  };
+
+  // If departureWindow is requested, fetch matching corridor trips and paginate after time-of-day filtering
+  const skip = departureWindow ? 0 : (page - 1) * limit;
+  const take = departureWindow ? undefined : limit;
+
+  const [rawTrips, dbTotal] = await Promise.all([
+    prisma.trip.findMany({
+      where,
+      skip,
+      take,
+      orderBy,
+      include,
+    }),
+    departureWindow ? Promise.resolve(0) : prisma.trip.count({ where }),
+  ]);
+
+  const formattedAll = rawTrips
+    .filter((trip) => matchesDepartureWindow(trip.departureTime, departureWindow))
+    .map((trip) => {
+      const seats = trip.tripSeats || [];
+      const availableSeats = seats.filter(
+        (s) =>
+          s.status === 'AVAILABLE' ||
+          (s.status === 'LOCKED' && s.lockedUntil && new Date(s.lockedUntil) <= now)
+      );
+      const minSeatPrice =
+        seats.length > 0
+          ? Math.min(...seats.map((s) => Number(s.price)))
+          : Number(trip.baseFare);
+
+      const { tripSeats: _omitSeats, ...tripCore } = trip;
+      return {
+        ...tripCore,
+        baseFare: Number(trip.baseFare),
+        availableSeatsCount: availableSeats.length,
+        minSeatPrice,
+      };
+    });
+
+  const total = departureWindow ? formattedAll.length : dbTotal;
+  const trips = departureWindow
+    ? formattedAll.slice((page - 1) * limit, page * limit)
+    : formattedAll;
+
+  return {
+    trips,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+}
+
+/**
+ * Public overview of a scheduled trip including ordered route stops and live availability count.
+ */
+async function getPublicTripById(tripId) {
+  const now = new Date();
+  const trip = await prisma.trip.findUnique({
+    where: { id: tripId },
+    include: {
+      route: {
+        include: {
+          routeStops: {
+            orderBy: { stopOrder: 'asc' },
+            include: { stop: true },
+          },
+        },
+      },
+      bus: {
+        select: {
+          id: true,
+          busNumber: true,
+          busType: true,
+          totalSeats: true,
+          deckCount: true,
+          amenities: true,
+          operator: {
+            select: { id: true, name: true, companyName: true, logoUrl: true },
+          },
+        },
+      },
+      tripSeats: {
+        select: { status: true, lockedUntil: true, price: true },
+      },
+    },
+  });
+
+  if (!trip) {
+    throw new AppError('Trip not found', 404);
+  }
+
+  const seats = trip.tripSeats || [];
+  const availableSeatsCount = seats.filter(
+    (s) =>
+      s.status === 'AVAILABLE' ||
+      (s.status === 'LOCKED' && s.lockedUntil && new Date(s.lockedUntil) <= now)
+  ).length;
+
+  const { tripSeats: _omitSeats, ...tripCore } = trip;
+
+  return {
+    ...tripCore,
+    baseFare: Number(trip.baseFare),
+    availableSeatsCount,
+  };
+}
+
 module.exports = {
   listTripsForManagement,
   scheduleTrip,
   updateTrip,
+  buildTripSearchWhere,
+  getTripSearchOrderBy,
+  matchesDepartureWindow,
+  searchPublicTrips,
+  getPublicTripById,
 };

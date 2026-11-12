@@ -11,6 +11,25 @@ async function listTrips(req, res, next) {
   }
 }
 
+async function searchTrips(req, res, next) {
+  try {
+    const query = req.validatedQuery || req.query;
+    const result = await tripService.searchPublicTrips(query);
+    return sendSuccess(res, result, 'Available trips retrieved successfully');
+  } catch (error) {
+    return next(error);
+  }
+}
+
+async function getTripById(req, res, next) {
+  try {
+    const trip = await tripService.getPublicTripById(req.params.id);
+    return sendSuccess(res, { trip }, 'Trip details retrieved successfully');
+  } catch (error) {
+    return next(error);
+  }
+}
+
 async function scheduleTrip(req, res, next) {
   try {
     const trip = await tripService.scheduleTrip(
@@ -42,6 +61,8 @@ async function updateTrip(req, res, next) {
 
 module.exports = {
   listTrips,
+  searchTrips,
+  getTripById,
   scheduleTrip,
   updateTrip,
 };
