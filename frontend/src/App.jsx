@@ -1,13 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   TruckIcon,
   CheckCircleIcon,
   ShieldCheckIcon,
   ArrowRightIcon,
   UserCircleIcon,
+  CalendarDaysIcon,
+  MapPinIcon,
 } from '@heroicons/react/24/solid';
+import { Button, Badge, Input, Card, Alert } from './components/ui';
 
 export default function App() {
+  const [fromCity, setFromCity] = useState('Delhi (ISBT Kashmiri Gate)');
+  const [toCity, setToCity] = useState('Jaipur (Sindhi Camp)');
+
   return (
     <div className="min-h-screen flex flex-col font-sans antialiased text-gray-900 bg-gray-50 selection:bg-[#73d200]/30">
       {/* Top Header / Navigation Bar */}
@@ -30,7 +36,7 @@ export default function App() {
               <span className="text-base">🇮🇳</span>
               <span>₹ INR</span>
             </div>
-            <button className="flex items-center gap-1.5 hover:underline bg-white/20 px-3 py-1.5 rounded-full md:bg-transparent md:p-0">
+            <button className="flex items-center gap-1.5 hover:underline bg-white/20 px-3 py-1.5 rounded-full md:bg-transparent md:p-0 cursor-pointer">
               <UserCircleIcon className="w-5 h-5 text-[#131b26]" />
               <span>Sign in / Register</span>
             </button>
@@ -43,6 +49,9 @@ export default function App() {
         {/* Hero Section */}
         <div className="bg-gradient-to-r from-gray-900 to-gray-800 text-white py-16 px-4">
           <div className="max-w-5xl mx-auto text-center md:text-left">
+            <div className="mb-3">
+              <Badge variant="operator">Express Intercity Fleet</Badge>
+            </div>
             <h1 className="text-3xl md:text-5xl font-black mb-4 tracking-tight">
               Intercity Bus Travel across India
             </h1>
@@ -50,50 +59,47 @@ export default function App() {
               Reliable, comfortable, and affordable bus tickets on high-density routes connecting Delhi, Jaipur, Mumbai, Pune, Bangalore, and more.
             </p>
 
-            <div className="bg-white rounded-xl shadow-2xl p-6 text-gray-800 max-w-4xl border border-gray-100">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-                <div className="border border-gray-300 rounded-lg p-2.5 bg-gray-50">
-                  <label className="text-[10px] uppercase font-bold text-gray-400 block">From</label>
-                  <input
-                    type="text"
-                    defaultValue="Delhi (ISBT Kashmiri Gate)"
-                    className="w-full bg-transparent font-semibold text-sm focus:outline-none"
-                    readOnly
-                  />
-                </div>
-                <div className="border border-gray-300 rounded-lg p-2.5 bg-gray-50">
-                  <label className="text-[10px] uppercase font-bold text-gray-400 block">To</label>
-                  <input
-                    type="text"
-                    defaultValue="Jaipur (Sindhi Camp)"
-                    className="w-full bg-transparent font-semibold text-sm focus:outline-none"
-                    readOnly
-                  />
-                </div>
-                <div className="border border-gray-300 rounded-lg p-2.5 bg-gray-50">
-                  <label className="text-[10px] uppercase font-bold text-gray-400 block">Date</label>
-                  <input
-                    type="text"
-                    defaultValue="Today, 10 Nov"
-                    className="w-full bg-transparent font-semibold text-sm focus:outline-none"
-                    readOnly
-                  />
-                </div>
-                <div>
-                  <button className="w-full bg-[#73d200] hover:bg-[#65b800] text-gray-900 font-bold py-3.5 px-4 rounded-lg flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.98]">
-                    <span>Search Buses</span>
-                    <ArrowRightIcon className="w-4 h-4" />
-                  </button>
-                </div>
+            <Card padding="p-6" className="text-gray-800 max-w-4xl shadow-2xl">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+                <Input
+                  label="From"
+                  icon={MapPinIcon}
+                  value={fromCity}
+                  onChange={(e) => setFromCity(e.target.value)}
+                />
+                <Input
+                  label="To"
+                  icon={MapPinIcon}
+                  value={toCity}
+                  onChange={(e) => setToCity(e.target.value)}
+                />
+                <Input
+                  label="Date"
+                  icon={CalendarDaysIcon}
+                  defaultValue="Today, 12 Nov"
+                  readOnly
+                />
+                <Button
+                  size="lg"
+                  fullWidth
+                  icon={ArrowRightIcon}
+                  iconPosition="right"
+                >
+                  Search Buses
+                </Button>
               </div>
-            </div>
+            </Card>
           </div>
         </div>
 
         {/* Feature Badges */}
-        <section className="max-w-5xl mx-auto px-4 py-12">
+        <section className="max-w-5xl mx-auto px-4 py-12 space-y-8">
+          <Alert variant="info" title="Design System Active">
+            Reusable UI components (`Button`, `Badge`, `Input`, `Select`, `Card`, `Modal`, `Alert`) powered exclusively by Heroicons.
+          </Alert>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-start gap-4">
+            <Card hoverable className="flex items-start gap-4">
               <div className="p-3 bg-[#73d200]/20 rounded-lg text-gray-900">
                 <TruckIcon className="w-6 h-6" />
               </div>
@@ -103,9 +109,9 @@ export default function App() {
                   PostgreSQL row-level locking ensures zero double-booking even under peak passenger demand.
                 </p>
               </div>
-            </div>
+            </Card>
 
-            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-start gap-4">
+            <Card hoverable className="flex items-start gap-4">
               <div className="p-3 bg-[#73d200]/20 rounded-lg text-gray-900">
                 <CheckCircleIcon className="w-6 h-6" />
               </div>
@@ -115,9 +121,9 @@ export default function App() {
                   Released seats become immediately available to passengers while retaining historical records.
                 </p>
               </div>
-            </div>
+            </Card>
 
-            <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-start gap-4">
+            <Card hoverable className="flex items-start gap-4">
               <div className="p-3 bg-[#73d200]/20 rounded-lg text-gray-900">
                 <ShieldCheckIcon className="w-6 h-6" />
               </div>
@@ -127,7 +133,7 @@ export default function App() {
                   End-to-end UPI, Card, and Net Banking booking simulation without external payment gateways.
                 </p>
               </div>
-            </div>
+            </Card>
           </div>
         </section>
       </main>
