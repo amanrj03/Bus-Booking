@@ -6,6 +6,7 @@ const auditRoutes = require('./audit.routes');
 const fleetRoutes = require('./fleet.routes');
 const routeRoutes = require('./route.routes');
 const tripRoutes = require('./trip.routes');
+const bookingRoutes = require('./booking.routes');
 
 const router = express.Router();
 
@@ -17,5 +18,6 @@ router.use('/audit-logs', auditRoutes);
 router.use('/fleet', fleetRoutes);
 router.use('/routes', routeRoutes);
 router.use('/trips', tripRoutes);
+router.use('/bookings', bookingRoutes);
 
 module.exports = router;
