@@ -56,8 +56,26 @@ const listBookingsQuerySchema = z.object({
   status: z.enum(['CONFIRMED', 'CANCELLED']).optional(),
 });
 
+const cancelBookingSchema = z.object({
+  reason: z
+    .string()
+    .trim()
+    .min(3, 'Cancellation reason must be at least 3 characters')
+    .max(250, 'Cancellation reason cannot exceed 250 characters')
+    .optional()
+    .default('Passenger requested cancellation'),
+  contactEmail: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .email('Valid contact email is required')
+    .optional(),
+  contactPhone: z.string().trim().optional(),
+});
+
 module.exports = {
   bookingPassengerSchema,
   createBookingSchema,
   listBookingsQuerySchema,
+  cancelBookingSchema,
 };
