@@ -7,6 +7,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute';
 import { Card } from './components/ui';
 import HomePage from './pages/HomePage';
 import SearchResultsPage from './pages/SearchResultsPage';
+import CheckoutPage from './pages/CheckoutPage';
 
 function PlaceholderView({ title }) {
   return (
@@ -29,9 +30,10 @@ function AppShell() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/search" element={<SearchResultsPage />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
         <Route
-          path="/checkout"
-          element={<PlaceholderView title="Multi-Step Checkout & 10-Min Hold Timer" />}
+          path="/booking/confirmation/:pnr"
+          element={<PlaceholderView title="Booking Confirmation & Printable E-Ticket" />}
         />
         <Route
           path="/my-bookings"
