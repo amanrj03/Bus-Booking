@@ -6,6 +6,7 @@ import AuthModal from './components/auth/AuthModal';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { Card } from './components/ui';
 import HomePage from './pages/HomePage';
+import SearchResultsPage from './pages/SearchResultsPage';
 
 function PlaceholderView({ title }) {
   return (
@@ -27,7 +28,7 @@ function AppShell() {
     <MainLayout user={user} onOpenAuth={openAuthModal} onLogout={logout}>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/search" element={<PlaceholderView title="Search Results & Filters" />} />
+        <Route path="/search" element={<SearchResultsPage />} />
         <Route
           path="/my-bookings"
           element={
