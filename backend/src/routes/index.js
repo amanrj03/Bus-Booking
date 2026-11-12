@@ -5,6 +5,7 @@ const userRoutes = require('./user.routes');
 const auditRoutes = require('./audit.routes');
 const fleetRoutes = require('./fleet.routes');
 const routeRoutes = require('./route.routes');
+const tripRoutes = require('./trip.routes');
 
 const router = express.Router();
 
@@ -15,5 +16,6 @@ router.use('/users', userRoutes);
 router.use('/audit-logs', auditRoutes);
 router.use('/fleet', fleetRoutes);
 router.use('/routes', routeRoutes);
+router.use('/trips', tripRoutes);
 
 module.exports = router;
