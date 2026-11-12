@@ -11,6 +11,8 @@ import CheckoutPage from './pages/CheckoutPage';
 import BookingConfirmationPage from './pages/BookingConfirmationPage';
 import MyBookingsPage from './pages/MyBookingsPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
+import PassengerManifestPage from './pages/PassengerManifestPage';
+import AuditLogsPage from './pages/AuditLogsPage';
 
 function PlaceholderView({ title }) {
   return (
@@ -56,7 +58,7 @@ function AppShell() {
           path="/admin/manifest"
           element={
             <ProtectedRoute allowedRoles={['ADMIN', 'OPERATOR']}>
-              <PlaceholderView title="Trip Passenger Manifest Table & Printable Sheet" />
+              <PassengerManifestPage />
             </ProtectedRoute>
           }
         />
@@ -64,7 +66,7 @@ function AppShell() {
           path="/admin/audit-logs"
           element={
             <ProtectedRoute allowedRoles={['ADMIN']}>
-              <PlaceholderView title="Centralized Security Audit Trail Viewer" />
+              <AuditLogsPage />
             </ProtectedRoute>
           }
         />
