@@ -23,6 +23,15 @@ const createBookingSchema = z
     paymentMethod: z
       .enum(['UPI', 'NET_BANKING', 'DEBIT_CARD', 'CREDIT_CARD', 'WALLET'])
       .default('UPI'),
+    paymentDetails: z
+      .object({
+        upiId: z.string().trim().max(80).optional(),
+        cardLast4: z.string().trim().regex(/^\d{4}$/).optional(),
+        bankName: z.string().trim().max(60).optional(),
+        walletProvider: z.string().trim().max(40).optional(),
+        simulateFailure: z.boolean().default(false),
+      })
+      .optional(),
     addons: z
       .object({
         extraBaggage: z.boolean().default(false),
@@ -41,7 +50,14 @@ const createBookingSchema = z
     }
   );
 
+const listBookingsQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(50).default(10),
+  status: z.enum(['CONFIRMED', 'CANCELLED']).optional(),
+});
+
 module.exports = {
   bookingPassengerSchema,
   createBookingSchema,
+  listBookingsQuerySchema,
 };

@@ -110,6 +110,12 @@ describe('Transactional Booking Engine (FOR UPDATE & Unique PNR)', () => {
               return p;
             },
           },
+          payment: {
+            create: async ({ data }) => ({ id: 'pay-1', ...data, createdAt: new Date() }),
+          },
+          bookingSeat: {
+            create: async ({ data }) => ({ id: 'bs-1', ...data, createdAt: new Date() }),
+          },
           tripSeat: {
             updateMany: async ({ data }) => {
               claimedUpdateData = data;
@@ -184,6 +190,12 @@ describe('Transactional Booking Engine (FOR UPDATE & Unique PNR)', () => {
           },
           bookingPassenger: {
             create: async ({ data }) => ({ id: 'bp-1', ...data }),
+          },
+          payment: {
+            create: async ({ data }) => ({ id: 'pay-hold-1', ...data, createdAt: new Date() }),
+          },
+          bookingSeat: {
+            create: async ({ data }) => ({ id: 'bs-hold-1', ...data, createdAt: new Date() }),
           },
           tripSeat: {
             updateMany: async () => ({ count: 1 }),

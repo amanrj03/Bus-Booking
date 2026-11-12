@@ -47,8 +47,26 @@ function calculateBookingFareSummary(seats = [], addons = {}) {
   };
 }
 
+const PAYMENT_METHOD_PREFIX = {
+  UPI: 'UPI',
+  NET_BANKING: 'NBK',
+  DEBIT_CARD: 'CRD',
+  CREDIT_CARD: 'CRD',
+  WALLET: 'WLT',
+};
+
+/**
+ * Generates a simulated payment transaction reference (e.g. TXN-SIM-UPI-482910).
+ */
+function generateSimulatedTxnRef(paymentMethod = 'UPI') {
+  const prefix = PAYMENT_METHOD_PREFIX[paymentMethod] || 'PAY';
+  const digits = crypto.randomInt(100000, 1000000);
+  return `TXN-SIM-${prefix}-${digits}`;
+}
+
 module.exports = {
   getCityCode,
   generatePnrCode,
   calculateBookingFareSummary,
+  generateSimulatedTxnRef,
 };

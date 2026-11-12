@@ -1,6 +1,10 @@
 const prisma = require('../config/prisma');
 const AppError = require('../utils/AppError');
-const { generatePnrCode, calculateBookingFareSummary } = require('../utils/pnrGenerator');
+const {
+  generatePnrCode,
+  calculateBookingFareSummary,
+  generateSimulatedTxnRef,
+} = require('../utils/pnrGenerator');
 const { recordAudit, AUDIT_ACTIONS } = require('./audit.service');
 
 /**
@@ -154,6 +158,40 @@ async function createTransactionalBooking(payload, actorUserId, ipAddress) {
       )
     );
 
+    // Simulated payment processing: allow explicit simulateFailure for negative testing
+    if (payload.paymentDetails?.simulateFailure) {
+      throw new AppError('Simulated payment declined by bank/network provider.', 402);
+    }
+
+    const transactionReference = generateSimulatedTxnRef(payload.paymentMethod);
+    const payment = await tx.payment.create({
+      data: {
+        bookingId: booking.id,
+        amount: fareSummary.totalAmount,
+        paymentMethod: payload.paymentMethod || 'UPI',
+        paymentStatus: 'SUCCESS',
+        transactionReference,
+      },
+    });
+
+    // Map each passenger to their TripSeat record and persist BookingSeat audit records
+    const seatMapByNumber = new Map(lockedSeats.map((s) => [s.seatNumber, s]));
+    const bookingSeats = await Promise.all(
+      passengers.map((p) => {
+        const tripSeat = seatMapByNumber.get(p.seatNumber);
+        return tx.bookingSeat.create({
+          data: {
+            bookingId: booking.id,
+            passengerId: p.id,
+            tripSeatId: tripSeat.id,
+            seatNumber: p.seatNumber,
+            seatPrice: Number(tripSeat.price),
+            status: 'CONFIRMED',
+          },
+        });
+      })
+    );
+
     const seatIds = lockedSeats.map((s) => s.id);
     const claimResult = await tx.tripSeat.updateMany({
       where: {
@@ -185,6 +223,8 @@ async function createTransactionalBooking(payload, actorUserId, ipAddress) {
         tripId: booking.tripId,
         seatNumbers: requestedSeatNumbers,
         totalAmount: fareSummary.totalAmount,
+        transactionReference,
+        paymentMethod: payload.paymentMethod || 'UPI',
       },
       ipAddress,
       tx,
@@ -196,18 +236,125 @@ async function createTransactionalBooking(payload, actorUserId, ipAddress) {
         totalAmount: Number(booking.totalAmount),
       },
       passengers,
-      seats: lockedSeats.map((s) => ({
-        tripSeatId: s.id,
-        seatNumber: s.seatNumber,
-        price: Number(s.price),
+      bookingSeats: bookingSeats.map((bs) => ({
+        ...bs,
+        seatPrice: Number(bs.seatPrice),
       })),
+      payment: {
+        ...payment,
+        amount: Number(payment.amount),
+      },
       fareSummary,
     };
   });
+}
+
+/**
+ * Retrieves passenger booking history with route, operator, seats, and simulated payment details.
+ */
+async function listUserBookings(userId, { page = 1, limit = 10, status }) {
+  const where = { userId };
+  if (status) where.status = status;
+
+  const skip = (page - 1) * limit;
+
+  const [bookings, total] = await Promise.all([
+    prisma.booking.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        trip: {
+          include: {
+            route: {
+              select: {
+                id: true,
+                sourceCity: true,
+                destinationCity: true,
+                estimatedMinutes: true,
+              },
+            },
+            bus: {
+              select: {
+                busNumber: true,
+                busType: true,
+                operator: { select: { id: true, name: true, companyName: true, logoUrl: true } },
+              },
+            },
+          },
+        },
+        passengers: true,
+        seats: true,
+        payment: true,
+        cancellation: true,
+      },
+    }),
+    prisma.booking.count({ where }),
+  ]);
+
+  return {
+    bookings: bookings.map((b) => ({
+      ...b,
+      totalAmount: Number(b.totalAmount),
+    })),
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+}
+
+/**
+ * Fetches an e-ticket by unique PNR code with passenger manifest and payment confirmation.
+ */
+async function getBookingByPnr(pnr) {
+  const booking = await prisma.booking.findUnique({
+    where: { pnr },
+    include: {
+      trip: {
+        include: {
+          route: {
+            include: {
+              routeStops: {
+                orderBy: { stopOrder: 'asc' },
+                include: { stop: true },
+              },
+            },
+          },
+          bus: {
+            select: {
+              busNumber: true,
+              busType: true,
+              amenities: true,
+              operator: { select: { id: true, name: true, companyName: true, contactPhone: true } },
+            },
+          },
+        },
+      },
+      passengers: true,
+      seats: true,
+      payment: true,
+      cancellation: true,
+    },
+  });
+
+  if (!booking) {
+    throw new AppError('Booking not found for provided PNR code', 404);
+  }
+
+  return {
+    ...booking,
+    totalAmount: Number(booking.totalAmount),
+  };
 }
 
 module.exports = {
   lockAndValidateSeats,
   allocateUniquePnr,
   createTransactionalBooking,
+  listUserBookings,
+  getBookingByPnr,
 };
