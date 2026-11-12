@@ -10,6 +10,7 @@ import SearchResultsPage from './pages/SearchResultsPage';
 import CheckoutPage from './pages/CheckoutPage';
 import BookingConfirmationPage from './pages/BookingConfirmationPage';
 import MyBookingsPage from './pages/MyBookingsPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
 
 function PlaceholderView({ title }) {
   return (
@@ -47,7 +48,23 @@ function AppShell() {
           path="/admin"
           element={
             <ProtectedRoute allowedRoles={['ADMIN', 'OPERATOR']}>
-              <PlaceholderView title="Admin & Operator Management Portal" />
+              <AdminDashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/manifest"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN', 'OPERATOR']}>
+              <PlaceholderView title="Trip Passenger Manifest Table & Printable Sheet" />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/audit-logs"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <PlaceholderView title="Centralized Security Audit Trail Viewer" />
             </ProtectedRoute>
           }
         />
