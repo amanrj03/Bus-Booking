@@ -1,13 +1,15 @@
 const express = require('express');
-const { authenticate, authorize } = require('../middleware/auth.middleware');
+const { authenticate, optionalAuthenticate, authorize } = require('../middleware/auth.middleware');
 const validateRequest = require('../middleware/validate');
 const tripController = require('../controllers/trip.controller');
+const seatController = require('../controllers/seat.controller');
 const {
   scheduleTripSchema,
   updateTripSchema,
   listAdminTripsQuerySchema,
   searchTripsQuerySchema,
 } = require('../validators/trip.validator');
+const { lockSeatsSchema, releaseSeatsSchema } = require('../validators/seat.validator');
 
 const router = express.Router();
 
@@ -29,6 +31,23 @@ router.get(
 
 // Public trip overview
 router.get('/:id', tripController.getTripById);
+
+// Live seat availability & temporary lock management (public/optional-auth for guest or logged-in checkout)
+router.get('/:id/seats', seatController.getTripSeats);
+
+router.post(
+  '/:id/seats/lock',
+  optionalAuthenticate,
+  validateRequest(lockSeatsSchema),
+  seatController.lockSeats
+);
+
+router.post(
+  '/:id/seats/release',
+  optionalAuthenticate,
+  validateRequest(releaseSeatsSchema),
+  seatController.releaseSeats
+);
 
 // Schedule trip with automatic TripSeat inventory creation
 router.post(
