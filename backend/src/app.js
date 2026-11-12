@@ -4,6 +4,7 @@ const config = require('./config/env');
 const routes = require('./routes');
 const notFoundHandler = require('./middleware/notFoundHandler');
 const errorHandler = require('./middleware/errorHandler');
+const { setupSwagger } = require('./docs/swagger');
 
 const app = express();
 
@@ -28,6 +29,9 @@ app.get('/', (req, res) => {
     health: '/api/v1/health',
   });
 });
+
+// Swagger UI & OpenAPI Specification
+setupSwagger(app);
 
 // API v1 routes
 app.use('/api/v1', routes);

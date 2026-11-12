@@ -1,0 +1,575 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Algions Intercity Express — Bus Booking Management System API",
+    "version": "1.0.0",
+    "description": "Production-grade RESTful API engine for intercity bus booking, inventory management, concurrency protection, and analytics.",
+    "contact": {
+      "name": "Algions AI Labs Assessment Submission",
+      "email": "amanrj03@gmail.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "/api/v1",
+      "description": "API Version 1 Default Endpoint"
+    }
+  ],
+  "tags": [
+    { "name": "Health", "description": "Liveness and database connectivity probes" },
+    { "name": "Authentication", "description": "JWT authentication, passenger registration, and token validation" },
+    { "name": "Users & RBAC", "description": "Role-based access control and user directory management" },
+    { "name": "Fleet Management", "description": "Bus operators and coach layout inventory management" },
+    { "name": "Routes & Stops", "description": "Intercity travel corridors, distances, and sequenced stations" },
+    { "name": "Trip Scheduling & Search", "description": "Public trip search, multi-factor filtering, and dispatch scheduling" },
+    { "name": "Seat Inventory & Holds", "description": "Real-time seat layout, live availability, and 10-minute temporary holds" },
+    { "name": "Booking & Checkout", "description": "Transactional booking with row-level locks, simulated payment rails, and PNR emission" },
+    { "name": "Cancellations & Refunds", "description": "Tiered cancellation deductions, instant simulated refunds, and atomic seat release" },
+    { "name": "Reports & Analytics", "description": "Conductor passenger manifests, seat occupancy %, and revenue trend reports" },
+    { "name": "Audit Logs", "description": "Immutable centralized audit trail for system operations" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Pass JWT Bearer token obtained via /api/v1/auth/login or /api/v1/auth/register"
+      }
+    },
+    "schemas": {
+      "StandardResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": true },
+          "message": { "type": "string", "example": "Operation completed successfully" },
+          "data": { "type": "object" }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": false },
+          "message": { "type": "string", "example": "Invalid request payload or constraint violation" },
+          "errors": { "type": "array", "items": { "type": "object" } }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string", "example": "Aman Sharma" },
+          "email": { "type": "string", "format": "email", "example": "passenger@busbooking.local" },
+          "role": { "type": "string", "enum": ["ADMIN", "OPERATOR", "PASSENGER"], "example": "PASSENGER" },
+          "phone": { "type": "string", "example": "+91 9876543210" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Operator": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string", "example": "Zingbus" },
+          "companyName": { "type": "string", "example": "Zingbus Express Private Limited" },
+          "contactEmail": { "type": "string", "format": "email" },
+          "contactPhone": { "type": "string", "example": "+91 9811122233" },
+          "logoUrl": { "type": "string", "nullable": true },
+          "isActive": { "type": "boolean", "example": true }
+        }
+      },
+      "Bus": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "operatorId": { "type": "string", "format": "uuid" },
+          "busNumber": { "type": "string", "example": "DL-01-AB-1234" },
+          "busType": { "type": "string", "enum": ["AC_SLEEPER_2X1", "AC_SEATER_2X2", "NON_AC_SEATER_2X2"] },
+          "totalSeats": { "type": "integer", "example": 36 },
+          "deckCount": { "type": "integer", "example": 2 },
+          "amenities": { "type": "array", "items": { "type": "string" }, "example": ["WIFI", "CHARGING_POINT", "WATER_BOTTLE"] },
+          "isActive": { "type": "boolean", "example": true }
+        }
+      },
+      "Route": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "sourceCity": { "type": "string", "example": "Delhi" },
+          "destinationCity": { "type": "string", "example": "Jaipur" },
+          "distanceKm": { "type": "number", "example": 280.5 },
+          "estimatedMinutes": { "type": "integer", "example": 360 },
+          "isActive": { "type": "boolean", "example": true }
+        }
+      },
+      "Trip": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "busId": { "type": "string", "format": "uuid" },
+          "routeId": { "type": "string", "format": "uuid" },
+          "departureTime": { "type": "string", "format": "date-time" },
+          "arrivalTime": { "type": "string", "format": "date-time" },
+          "baseFare": { "type": "number", "example": 650 },
+          "status": { "type": "string", "enum": ["SCHEDULED", "RUNNING", "COMPLETED", "CANCELLED"] },
+          "availableSeatsCount": { "type": "integer", "example": 24 }
+        }
+      },
+      "Booking": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "pnr": { "type": "string", "example": "FLX-DEL-2611-1001" },
+          "userId": { "type": "string", "format": "uuid", "nullable": true },
+          "tripId": { "type": "string", "format": "uuid" },
+          "totalAmount": { "type": "number", "example": 1365 },
+          "status": { "type": "string", "enum": ["CONFIRMED", "CANCELLED"] },
+          "contactEmail": { "type": "string", "format": "email" },
+          "contactPhone": { "type": "string", "example": "+91 9876543210" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Cancellation": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "bookingId": { "type": "string", "format": "uuid" },
+          "cancellationFee": { "type": "number", "example": 136.5 },
+          "refundAmount": { "type": "number", "example": 1228.5 },
+          "reason": { "type": "string", "example": "Change of travel dates" },
+          "refundStatus": { "type": "string", "example": "PROCESSED" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "System Health & Database Liveness Probe",
+        "description": "Checks database connection pool and server uptime.",
+        "responses": {
+          "200": { "description": "System healthy and operational" }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Register a new passenger account",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "email", "password"],
+                "properties": {
+                  "name": { "type": "string", "example": "Rahul Verma" },
+                  "email": { "type": "string", "format": "email", "example": "rahul@example.com" },
+                  "password": { "type": "string", "format": "password", "example": "Password123!" },
+                  "phone": { "type": "string", "example": "+919876543210" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Account created successfully with emitted JWT" },
+          "409": { "description": "Email address already registered" }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Authenticate user credentials and receive JWT Bearer token",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": { "type": "string", "format": "email", "example": "passenger@busbooking.local" },
+                  "password": { "type": "string", "format": "password", "example": "Password123!" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Authentication successful; returns token and user profile" },
+          "401": { "description": "Invalid credentials or nonexistent email" }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Get authenticated user profile",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Profile details returned" },
+          "401": { "description": "Missing, invalid, or expired JWT token" }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "tags": ["Users & RBAC"],
+        "summary": "List system users (Admin only)",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 20 } },
+          { "name": "role", "in": "query", "schema": { "type": "string", "enum": ["ADMIN", "OPERATOR", "PASSENGER"] } }
+        ],
+        "responses": {
+          "200": { "description": "Paginated users list" },
+          "403": { "description": "Forbidden for non-Admin users" }
+        }
+      }
+    },
+    "/users/{id}/role": {
+      "patch": {
+        "tags": ["Users & RBAC"],
+        "summary": "Promote or update user role (Admin only)",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["role"],
+                "properties": {
+                  "role": { "type": "string", "enum": ["ADMIN", "OPERATOR", "PASSENGER"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Role updated and audited" },
+          "403": { "description": "Forbidden" }
+        }
+      }
+    },
+    "/fleet/operators": {
+      "get": {
+        "tags": ["Fleet Management"],
+        "summary": "List bus operators",
+        "responses": {
+          "200": { "description": "Active operators list" }
+        }
+      },
+      "post": {
+        "tags": ["Fleet Management"],
+        "summary": "Register a new bus operator (Admin only)",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "201": { "description": "Operator created" }
+        }
+      }
+    },
+    "/fleet/buses": {
+      "get": {
+        "tags": ["Fleet Management"],
+        "summary": "List buses with layout specifications",
+        "responses": {
+          "200": { "description": "Buses list" }
+        }
+      },
+      "post": {
+        "tags": ["Fleet Management"],
+        "summary": "Register a new coach and auto-provision seats (Admin / Operator)",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "201": { "description": "Bus registered and seats created" }
+        }
+      }
+    },
+    "/routes": {
+      "get": {
+        "tags": ["Routes & Stops"],
+        "summary": "List intercity corridors and sequenced stations",
+        "responses": {
+          "200": { "description": "Routes list" }
+        }
+      },
+      "post": {
+        "tags": ["Routes & Stops"],
+        "summary": "Create a new route corridor (Admin only)",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "201": { "description": "Route created" }
+        }
+      }
+    },
+    "/trips/search": {
+      "get": {
+        "tags": ["Trip Scheduling & Search"],
+        "summary": "Public trip search and price comparison",
+        "parameters": [
+          { "name": "sourceCity", "in": "query", "required": true, "schema": { "type": "string", "example": "Delhi" } },
+          { "name": "destinationCity", "in": "query", "required": true, "schema": { "type": "string", "example": "Jaipur" } },
+          { "name": "date", "in": "query", "required": true, "schema": { "type": "string", "format": "date", "example": "2026-11-15" } },
+          { "name": "busType", "in": "query", "schema": { "type": "string", "enum": ["AC_SLEEPER_2X1", "AC_SEATER_2X2", "NON_AC_SEATER_2X2"] } },
+          { "name": "minPrice", "in": "query", "schema": { "type": "number" } },
+          { "name": "maxPrice", "in": "query", "schema": { "type": "number" } },
+          { "name": "departureWindow", "in": "query", "schema": { "type": "string", "enum": ["morning", "afternoon", "evening", "night"] } },
+          { "name": "sortBy", "in": "query", "schema": { "type": "string", "enum": ["price", "departureTime", "duration", "seatsAvailable"], "default": "departureTime" } },
+          { "name": "sortOrder", "in": "query", "schema": { "type": "string", "enum": ["asc", "desc"], "default": "asc" } }
+        ],
+        "responses": {
+          "200": { "description": "Matching scheduled trips with live seat availability" }
+        }
+      }
+    },
+    "/trips": {
+      "post": {
+        "tags": ["Trip Scheduling & Search"],
+        "summary": "Schedule a new trip and auto-create TripSeat inventory (Admin / Operator)",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "201": { "description": "Trip scheduled and seats generated atomically" }
+        }
+      }
+    },
+    "/trips/{id}/seats": {
+      "get": {
+        "tags": ["Seat Inventory & Holds"],
+        "summary": "Fetch interactive seat map layout and live seat status",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Seat map with AVAILABLE, LOCKED, and BOOKED statuses" }
+        }
+      }
+    },
+    "/trips/{id}/seats/lock": {
+      "post": {
+        "tags": ["Seat Inventory & Holds"],
+        "summary": "Acquire 10-minute temporary seat hold during checkout",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["seatNumbers"],
+                "properties": {
+                  "seatNumbers": { "type": "array", "items": { "type": "string" }, "example": ["12A"] },
+                  "durationSeconds": { "type": "integer", "default": 600 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Seats locked with lockedUntil expiration timestamp" },
+          "409": { "description": "Seat already locked or booked" }
+        }
+      }
+    },
+    "/trips/{id}/seats/release": {
+      "post": {
+        "tags": ["Seat Inventory & Holds"],
+        "summary": "Release temporary seat hold back to available status",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["seatNumbers"],
+                "properties": {
+                  "seatNumbers": { "type": "array", "items": { "type": "string" } }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Seats released back to inventory" }
+        }
+      }
+    },
+    "/bookings": {
+      "post": {
+        "tags": ["Booking & Checkout"],
+        "summary": "Create booking atomically with PostgreSQL row-level locks and simulated payment",
+        "description": "Acquires SELECT ... FOR UPDATE row locks on requested seats, validates 10-minute hold ownership, charges simulated payment, provisions Booking + BookingPassengers, and emits unique PNR.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["tripId", "contactEmail", "contactPhone", "passengers"],
+                "properties": {
+                  "tripId": { "type": "string", "format": "uuid" },
+                  "contactEmail": { "type": "string", "format": "email", "example": "traveler@example.com" },
+                  "contactPhone": { "type": "string", "example": "+91 9876543210" },
+                  "holdExpiresAt": { "type": "string", "format": "date-time" },
+                  "paymentMethod": { "type": "string", "enum": ["UPI", "NET_BANKING", "DEBIT_CARD", "CREDIT_CARD", "WALLET"], "default": "UPI" },
+                  "passengers": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": ["fullName", "age", "gender", "seatNumber"],
+                      "properties": {
+                        "fullName": { "type": "string", "example": "Aman Sharma" },
+                        "age": { "type": "integer", "example": 28 },
+                        "gender": { "type": "string", "enum": ["MALE", "FEMALE", "OTHER"], "example": "MALE" },
+                        "seatNumber": { "type": "string", "example": "12A" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Booking confirmed with unique PNR and simulated payment receipt" },
+          "409": { "description": "Concurrent booking conflict; seat already claimed by another session" }
+        }
+      }
+    },
+    "/bookings/my": {
+      "get": {
+        "tags": ["Booking & Checkout"],
+        "summary": "Fetch authenticated passenger booking history",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 10 } },
+          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["CONFIRMED", "CANCELLED"] } }
+        ],
+        "responses": {
+          "200": { "description": "Paginated booking list with route, coach, and payment details" }
+        }
+      }
+    },
+    "/bookings/pnr/{pnr}": {
+      "get": {
+        "tags": ["Booking & Checkout"],
+        "summary": "Fetch public digital e-ticket and boarding pass by PNR code",
+        "parameters": [
+          { "name": "pnr", "in": "path", "required": true, "schema": { "type": "string", "example": "FLX-DEL-2611-1001" } }
+        ],
+        "responses": {
+          "200": { "description": "E-ticket payload with QR verification data and passenger manifest" },
+          "404": { "description": "PNR not found" }
+        }
+      }
+    },
+    "/bookings/{id}/cancel-quote": {
+      "get": {
+        "tags": ["Cancellations & Refunds"],
+        "summary": "Calculate tiered cancellation refund quote prior to confirmation",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "description": "Booking UUID or PNR code" } }
+        ],
+        "responses": {
+          "200": { "description": "Quote with departure hours remaining, fee percentage, and refund amount in INR" },
+          "400": { "description": "Booking already cancelled or past departure" }
+        }
+      }
+    },
+    "/bookings/{id}/cancel": {
+      "post": {
+        "tags": ["Cancellations & Refunds"],
+        "summary": "Execute atomic booking cancellation, refund processing, and seat release",
+        "description": "Applies tiered cancellation fee (>24h: 10%, 12-24h: 25%, <12h: 50%), transitions status to CANCELLED, updates payment to REFUNDED, and immediately resets TripSeats to AVAILABLE.",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "description": "Booking UUID or PNR code" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": { "type": "string", "example": "Change of travel dates" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Booking cancelled and seats released back to live inventory" },
+          "400": { "description": "Already cancelled or post-departure request" }
+        }
+      }
+    },
+    "/reports/manifest/{tripId}": {
+      "get": {
+        "tags": ["Reports & Analytics"],
+        "summary": "Seat-by-seat passenger manifest and conductor roster",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "tripId", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } },
+          { "name": "includeCancelled", "in": "query", "schema": { "type": "boolean", "default": false } }
+        ],
+        "responses": {
+          "200": { "description": "Trip passenger manifest sorted naturally by seat number" },
+          "403": { "description": "Forbidden for unauthorized operators" }
+        }
+      }
+    },
+    "/reports/occupancy": {
+      "get": {
+        "tags": ["Reports & Analytics"],
+        "summary": "Seat occupancy % report across routes and scheduled trips",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "fromDate", "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "toDate", "in": "query", "schema": { "type": "string", "format": "date" } }
+        ],
+        "responses": {
+          "200": { "description": "System-wide and route-level occupancy metrics" }
+        }
+      }
+    },
+    "/reports/revenue": {
+      "get": {
+        "tags": ["Reports & Analytics"],
+        "summary": "Financial revenue summary, daily trajectory, and operator market shares",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "KPI cards and Recharts-ready aggregated metrics" }
+        }
+      }
+    },
+    "/audit-logs": {
+      "get": {
+        "tags": ["Audit Logs"],
+        "summary": "List immutable audit logs (Admin only)",
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 25 } },
+          { "name": "action", "in": "query", "schema": { "type": "string" } },
+          { "name": "entity", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Paginated audit trail" }
+        }
+      }
+    }
+  }
+}
