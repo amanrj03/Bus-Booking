@@ -5,12 +5,16 @@ const config = require('../config/env');
  * Centralized global error handling middleware
  */
 const errorHandler = (err, req, res, next) => {
-  // eslint-disable-next-line no-console
-  console.error(`[Error] ${req.method} ${req.originalUrl}:`, err);
+  // Only log unexpected 500 server errors loudly during tests/dev
+  if (!err.isOperational && config.nodeEnv !== 'test') {
+    // eslint-disable-next-line no-console
+    console.error(`[Error] ${req.method} ${req.originalUrl}:`, err);
+  }
 
-  // Handle Zod validation errors
+  // Handle Zod validation errors directly
   if (err.name === 'ZodError') {
-    const formattedErrors = err.errors.map((e) => ({
+    const rawIssues = err.issues || err.errors || [];
+    const formattedErrors = rawIssues.map((e) => ({
       field: e.path.join('.'),
       message: e.message,
     }));
@@ -36,7 +40,7 @@ const errorHandler = (err, req, res, next) => {
 
   const statusCode = err.statusCode || 500;
   const message = err.message || 'Internal server error';
-  const errors = config.nodeEnv === 'development' ? { stack: err.stack } : null;
+  const errors = err.errors || (config.nodeEnv === 'development' && !err.isOperational ? { stack: err.stack } : null);
 
   return sendError(res, message, statusCode, errors);
 };
