@@ -7,6 +7,7 @@ const fleetRoutes = require('./fleet.routes');
 const routeRoutes = require('./route.routes');
 const tripRoutes = require('./trip.routes');
 const bookingRoutes = require('./booking.routes');
+const reportRoutes = require('./report.routes');
 
 const router = express.Router();
 
@@ -19,5 +20,6 @@ router.use('/fleet', fleetRoutes);
 router.use('/routes', routeRoutes);
 router.use('/trips', tripRoutes);
 router.use('/bookings', bookingRoutes);
+router.use('/reports', reportRoutes);
 
 module.exports = router;
