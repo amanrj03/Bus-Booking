@@ -9,6 +9,7 @@ import HomePage from './pages/HomePage';
 import SearchResultsPage from './pages/SearchResultsPage';
 import CheckoutPage from './pages/CheckoutPage';
 import BookingConfirmationPage from './pages/BookingConfirmationPage';
+import MyBookingsPage from './pages/MyBookingsPage';
 
 function PlaceholderView({ title }) {
   return (
@@ -38,7 +39,7 @@ function AppShell() {
           path="/my-bookings"
           element={
             <ProtectedRoute>
-              <PlaceholderView title="Manage My Bookings & E-Tickets" />
+              <MyBookingsPage />
             </ProtectedRoute>
           }
         />

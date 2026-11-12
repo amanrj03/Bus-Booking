@@ -23,3 +23,19 @@ export async function fetchMyBookings(params = {}) {
   const response = await api.get('/bookings/my', { params });
   return response.data?.data || { bookings: [], pagination: {} };
 }
+
+/**
+ * Retrieves cancellation refund tier quote before confirming cancellation.
+ */
+export async function fetchCancellationQuote(bookingId) {
+  const response = await api.get(`/bookings/${encodeURIComponent(bookingId)}/cancel-quote`);
+  return response.data?.data || null;
+}
+
+/**
+ * Cancels booking atomically, marks payment REFUNDED, and releases seats.
+ */
+export async function cancelBooking(bookingId, payload = {}) {
+  const response = await api.post(`/bookings/${encodeURIComponent(bookingId)}/cancel`, payload);
+  return response.data?.data || null;
+}
