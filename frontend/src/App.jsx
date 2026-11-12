@@ -30,6 +30,10 @@ function AppShell() {
         <Route path="/" element={<HomePage />} />
         <Route path="/search" element={<SearchResultsPage />} />
         <Route
+          path="/checkout"
+          element={<PlaceholderView title="Multi-Step Checkout & 10-Min Hold Timer" />}
+        />
+        <Route
           path="/my-bookings"
           element={
             <ProtectedRoute>

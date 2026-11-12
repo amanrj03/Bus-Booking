@@ -13,8 +13,9 @@ import { Button, Card, Alert, Modal } from '../components/ui';
 import HeroSearchWidget from '../components/search/HeroSearchWidget';
 import SearchFilterSidebar from '../components/search/SearchFilterSidebar';
 import TripResultCard from '../components/search/TripResultCard';
+import SeatMapDrawer from '../components/seats/SeatMapDrawer';
 import { searchTrips } from '../services/trip.service';
-import { formatDateTabLabel, getLocalDateString, formatClockTime } from '../utils/dateUtils';
+import { formatDateTabLabel, getLocalDateString } from '../utils/dateUtils';
 
 const DEFAULT_FILTERS = {
   busType: '',
@@ -337,40 +338,13 @@ export default function SearchResultsPage() {
         />
       </Modal>
 
-      {/* Lightweight Seat Selection Preview Modal (replaced by interactive deck drawer in Commit 5.3) */}
-      <Modal
+      {/* Interactive Bus Seat Map Drawer */}
+      <SeatMapDrawer
+        trip={selectedTrip}
         isOpen={Boolean(selectedTrip)}
         onClose={() => setSelectedTrip(null)}
-        title={
-          selectedTrip
-            ? `${selectedTrip.route?.sourceCity} → ${selectedTrip.route?.destinationCity}`
-            : ''
-        }
-        subtitle={
-          selectedTrip
-            ? `${selectedTrip.bus?.operator?.companyName || selectedTrip.bus?.operator?.name} • Departure ${formatClockTime(
-                selectedTrip.departureTime
-              )}`
-            : ''
-        }
-      >
-        {selectedTrip && (
-          <div className="space-y-4">
-            <Alert variant="info">
-              Interactive lower/upper deck coach seat map and 10-minute seat locking will connect directly here in upcoming commits (Phase 5.2–5.3).
-            </Alert>
-            <div className="flex items-center justify-between text-sm font-bold text-gray-800 bg-gray-50 p-3.5 rounded-lg border border-gray-200">
-              <span>Available Inventory</span>
-              <span>{selectedTrip.availableSeatsCount} seats ready</span>
-            </div>
-            <div className="flex justify-end">
-              <Button variant="secondary" onClick={() => setSelectedTrip(null)}>
-                Close Preview
-              </Button>
-            </div>
-          </div>
-        )}
-      </Modal>
+        passengersRequested={passengers}
+      />
     </div>
   );
 }

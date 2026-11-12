@@ -31,3 +31,32 @@ export async function fetchTripById(tripId) {
   const response = await api.get(`/trips/${tripId}`);
   return response.data?.data?.trip || null;
 }
+
+/**
+ * Fetches live physical seat layout and real-time availability (after expiring stale holds).
+ */
+export async function fetchTripSeatMap(tripId) {
+  const response = await api.get(`/trips/${tripId}/seats`);
+  return response.data?.data || { trip: null, seats: [], summary: {} };
+}
+
+/**
+ * Places a 10-minute temporary hold on selected seat numbers for checkout.
+ */
+export async function lockTripSeats(tripId, seatNumbers, holdMinutes = 10) {
+  const response = await api.post(`/trips/${tripId}/seats/lock`, {
+    seatNumbers,
+    holdMinutes,
+  });
+  return response.data?.data;
+}
+
+/**
+ * Releases held LOCKED seats back to AVAILABLE inventory.
+ */
+export async function releaseTripSeats(tripId, seatNumbers) {
+  const response = await api.post(`/trips/${tripId}/seats/release`, {
+    seatNumbers,
+  });
+  return response.data?.data;
+}
