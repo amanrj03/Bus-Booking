@@ -1,4 +1,5 @@
 const authService = require('../services/auth.service');
+const { recordAudit, AUDIT_ACTIONS } = require('../services/audit.service');
 const { sendSuccess } = require('../utils/response');
 
 /**
@@ -7,6 +8,16 @@ const { sendSuccess } = require('../utils/response');
 async function register(req, res, next) {
   try {
     const result = await authService.registerUser(req.body);
+
+    await recordAudit({
+      userId: result.user.id,
+      action: AUDIT_ACTIONS.USER_REGISTERED,
+      entity: 'User',
+      entityId: result.user.id,
+      details: { email: result.user.email, role: result.user.role },
+      ipAddress: req.ip,
+    });
+
     return sendSuccess(res, result, 'Passenger registered successfully', 201);
   } catch (error) {
     return next(error);
@@ -19,6 +30,16 @@ async function register(req, res, next) {
 async function login(req, res, next) {
   try {
     const result = await authService.loginUser(req.body);
+
+    await recordAudit({
+      userId: result.user.id,
+      action: AUDIT_ACTIONS.USER_LOGIN,
+      entity: 'User',
+      entityId: result.user.id,
+      details: { email: result.user.email, role: result.user.role },
+      ipAddress: req.ip,
+    });
+
     return sendSuccess(res, result, 'Authentication successful', 200);
   } catch (error) {
     return next(error);

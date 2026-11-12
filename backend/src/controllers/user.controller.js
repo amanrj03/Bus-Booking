@@ -1,4 +1,5 @@
 const userService = require('../services/user.service');
+const { recordAudit, AUDIT_ACTIONS } = require('../services/audit.service');
 const { sendSuccess } = require('../utils/response');
 
 /**
@@ -20,6 +21,16 @@ async function listUsers(req, res, next) {
 async function updateUserRole(req, res, next) {
   try {
     const updatedUser = await userService.updateUserRole(req.params.id, req.body.role);
+
+    await recordAudit({
+      userId: req.user.userId,
+      action: AUDIT_ACTIONS.USER_ROLE_UPDATED,
+      entity: 'User',
+      entityId: updatedUser.id,
+      details: { targetEmail: updatedUser.email, newRole: updatedUser.role },
+      ipAddress: req.ip,
+    });
+
     return sendSuccess(res, { user: updatedUser }, 'User role updated successfully');
   } catch (error) {
     return next(error);
