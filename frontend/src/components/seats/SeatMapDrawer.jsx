@@ -6,6 +6,7 @@ import { Button, Badge, Alert } from '../ui';
 import SeatItem from './SeatItem';
 import { fetchTripSeatMap, lockTripSeats } from '../../services/trip.service';
 import { formatClockTime } from '../../utils/dateUtils';
+import { groupDeckRows, calculateSelectedSubtotal } from '../../utils/seatLayout';
 
 const MAX_SELECTABLE_SEATS = 6;
 
@@ -67,34 +68,14 @@ export default function SeatMapDrawer({
   const deckCount = liveTrip?.bus?.deckCount || (liveTrip?.bus?.busType === 'AC_SLEEPER_2X1' ? 2 : 1);
   const isSleeperCoach = liveTrip?.bus?.busType === 'AC_SLEEPER_2X1';
 
-  const deckSeats = useMemo(
-    () => seats.filter((s) => (s.deck || 1) === activeDeck),
-    [seats, activeDeck]
-  );
-
-  // Group seats by row number for clean aisle rendering
-  const rowsMap = useMemo(() => {
-    const map = new Map();
-    deckSeats.forEach((s) => {
-      if (!map.has(s.row)) map.set(s.row, []);
-      map.get(s.row).push(s);
-    });
-    return Array.from(map.entries())
-      .sort(([rA], [rB]) => rA - rB)
-      .map(([rowNum, rowSeats]) => ({
-        rowNum,
-        seats: [...rowSeats].sort((a, b) => a.column - b.column),
-      }));
-  }, [deckSeats]);
-
-  const selectedSeatObjects = useMemo(
-    () => seats.filter((s) => selectedNumbers.includes(s.seatNumber)),
-    [seats, selectedNumbers]
+  const rowsMap = useMemo(
+    () => groupDeckRows(seats, activeDeck, isSleeperCoach),
+    [seats, activeDeck, isSleeperCoach]
   );
 
   const subtotal = useMemo(
-    () => selectedSeatObjects.reduce((sum, s) => sum + Number(s.price || 0), 0),
-    [selectedSeatObjects]
+    () => calculateSelectedSubtotal(seats, selectedNumbers),
+    [seats, selectedNumbers]
   );
 
   const handleToggleSeat = (seat) => {
@@ -287,46 +268,37 @@ export default function SeatMapDrawer({
 
               {/* Seat Rows */}
               <div className="space-y-3">
-                {rowsMap.map(({ rowNum, seats: rowSeats }) => {
-                  const leftSeats = isSleeperCoach
-                    ? rowSeats.filter((s) => s.column === 1)
-                    : rowSeats.filter((s) => s.column <= 2);
-                  const rightSeats = isSleeperCoach
-                    ? rowSeats.filter((s) => s.column >= 2)
-                    : rowSeats.filter((s) => s.column >= 3);
-
-                  return (
-                    <div key={rowNum} className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-1.5">
-                        {leftSeats.map((s) => (
-                          <SeatItem
-                            key={s.tripSeatId || s.seatNumber}
-                            seat={s}
-                            isSleeperLayout={isSleeperCoach}
-                            isSelected={selectedNumbers.includes(s.seatNumber)}
-                            onToggle={handleToggleSeat}
-                          />
-                        ))}
-                      </div>
-
-                      <div className="flex-1 text-center text-[10px] font-bold text-gray-300 select-none">
-                        R{rowNum}
-                      </div>
-
-                      <div className="flex items-center gap-1.5">
-                        {rightSeats.map((s) => (
-                          <SeatItem
-                            key={s.tripSeatId || s.seatNumber}
-                            seat={s}
-                            isSleeperLayout={isSleeperCoach}
-                            isSelected={selectedNumbers.includes(s.seatNumber)}
-                            onToggle={handleToggleSeat}
-                          />
-                        ))}
-                      </div>
+                {rowsMap.map(({ rowNum, leftSeats, rightSeats }) => (
+                  <div key={rowNum} className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5">
+                      {leftSeats.map((s) => (
+                        <SeatItem
+                          key={s.tripSeatId || s.seatNumber}
+                          seat={s}
+                          isSleeperLayout={isSleeperCoach}
+                          isSelected={selectedNumbers.includes(s.seatNumber)}
+                          onToggle={handleToggleSeat}
+                        />
+                      ))}
                     </div>
-                  );
-                })}
+
+                    <div className="flex-1 text-center text-[10px] font-bold text-gray-300 select-none">
+                      R{rowNum}
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      {rightSeats.map((s) => (
+                        <SeatItem
+                          key={s.tripSeatId || s.seatNumber}
+                          seat={s}
+                          isSleeperLayout={isSleeperCoach}
+                          isSelected={selectedNumbers.includes(s.seatNumber)}
+                          onToggle={handleToggleSeat}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
