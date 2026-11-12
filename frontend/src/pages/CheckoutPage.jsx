@@ -241,10 +241,22 @@ export default function CheckoutPage() {
       };
 
       const confirmation = await createBooking(payload);
+      const enrichedConfirmation = {
+        ...confirmation,
+        trip,
+        booking: {
+          ...confirmation.booking,
+          trip: confirmation.booking?.trip || trip,
+          passengers: confirmation.passengers || [],
+          seats: confirmation.bookingSeats || [],
+          payment: confirmation.payment || null,
+          fareSummary: confirmation.fareSummary || null,
+        },
+      };
       sessionStorage.removeItem('bus_checkout_hold');
-      sessionStorage.setItem('bus_last_confirmation', JSON.stringify(confirmation));
+      sessionStorage.setItem('bus_last_confirmation', JSON.stringify(enrichedConfirmation));
       navigate(`/booking/confirmation/${confirmation.booking.pnr}`, {
-        state: confirmation,
+        state: enrichedConfirmation,
         replace: true,
       });
     } catch (err) {

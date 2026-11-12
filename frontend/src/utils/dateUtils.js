@@ -44,3 +44,37 @@ export function formatDuration(minutes) {
   const m = total % 60;
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 }
+
+/**
+ * Formats an ISO timestamp into a long human-readable date (e.g. "Thu, 12 Nov 2026").
+ */
+export function formatDateLong(isoString) {
+  if (!isoString) return '--';
+  const d = new Date(isoString);
+  return d.toLocaleDateString('en-IN', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
+/**
+ * Formats an ISO timestamp into "Thu, 12 Nov 2026, 21:00".
+ */
+export function formatDateTime(isoString) {
+  if (!isoString) return '--';
+  const d = new Date(isoString);
+  const datePart = d.toLocaleDateString('en-IN', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+  const timePart = d.toLocaleTimeString('en-IN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+  return `${datePart}, ${timePart}`;
+}

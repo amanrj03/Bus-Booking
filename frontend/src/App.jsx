@@ -8,6 +8,7 @@ import { Card } from './components/ui';
 import HomePage from './pages/HomePage';
 import SearchResultsPage from './pages/SearchResultsPage';
 import CheckoutPage from './pages/CheckoutPage';
+import BookingConfirmationPage from './pages/BookingConfirmationPage';
 
 function PlaceholderView({ title }) {
   return (
@@ -31,10 +32,8 @@ function AppShell() {
         <Route path="/" element={<HomePage />} />
         <Route path="/search" element={<SearchResultsPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
-        <Route
-          path="/booking/confirmation/:pnr"
-          element={<PlaceholderView title="Booking Confirmation & Printable E-Ticket" />}
-        />
+        <Route path="/booking/confirmation/:pnr" element={<BookingConfirmationPage />} />
+        <Route path="/ticket/:pnr" element={<BookingConfirmationPage />} />
         <Route
           path="/my-bookings"
           element={
