@@ -55,7 +55,7 @@ const FALLBACK_LOGS = [
     createdAt: new Date().toISOString(),
     ipAddress: '127.0.0.1',
     user: { name: 'Aman Sharma', email: 'passenger@busbooking.local', role: 'PASSENGER' },
-    details: { pnr: 'FLX-DEL-2611-1001', seatNumbers: ['L1', 'L2'], totalAmount: 1365, paymentMethod: 'UPI' },
+    details: { pnr: 'GB-DEL-2611-1001', seatNumbers: ['L1', 'L2'], totalAmount: 1365, paymentMethod: 'UPI' },
   },
   {
     id: 'log-102',
@@ -65,7 +65,7 @@ const FALLBACK_LOGS = [
     createdAt: new Date(Date.now() - 35 * 60 * 1000).toISOString(),
     ipAddress: '127.0.0.1',
     user: { name: 'Aman Sharma', email: 'passenger@busbooking.local', role: 'PASSENGER' },
-    details: { pnr: 'FLX-MUM-2611-2002', cancellationFee: 80, refundAmount: 720, releasedSeats: ['1A'] },
+    details: { pnr: 'GB-MUM-2611-2002', cancellationFee: 80, refundAmount: 720, releasedSeats: ['1A'] },
   },
   {
     id: 'log-103',

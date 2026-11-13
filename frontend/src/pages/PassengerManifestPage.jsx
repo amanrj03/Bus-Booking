@@ -52,14 +52,14 @@ const FALLBACK_MANIFEST = {
     confirmedRevenue: 17550,
   },
   manifest: [
-    { seatNumber: 'L1', passengerName: 'Amitabh Sharma', age: 34, gender: 'MALE', pnr: 'FLX-DEL-2611-1001', contactPhone: '+91 9876543210', contactEmail: 'amitabh@example.com', seatPrice: 650, bookingStatus: 'CONFIRMED' },
-    { seatNumber: 'L2', passengerName: 'Deepika Sharma', age: 31, gender: 'FEMALE', pnr: 'FLX-DEL-2611-1001', contactPhone: '+91 9876543210', contactEmail: 'amitabh@example.com', seatPrice: 650, bookingStatus: 'CONFIRMED' },
-    { seatNumber: 'L3', passengerName: 'Vikram Seth', age: 42, gender: 'MALE', pnr: 'FLX-DEL-2611-1002', contactPhone: '+91 9822334455', contactEmail: 'vikram@example.com', seatPrice: 650, bookingStatus: 'CONFIRMED' },
-    { seatNumber: 'L4', passengerName: 'Sunita Rao', age: 29, gender: 'FEMALE', pnr: 'FLX-DEL-2611-1003', contactPhone: '+91 9899112233', contactEmail: 'sunita@example.com', seatPrice: 650, bookingStatus: 'CONFIRMED' },
-    { seatNumber: 'U1', passengerName: 'Rajesh Mehra', age: 50, gender: 'MALE', pnr: 'FLX-DEL-2611-1004', contactPhone: '+91 9811223344', contactEmail: 'rajesh@example.com', seatPrice: 650, bookingStatus: 'CONFIRMED' },
-    { seatNumber: 'U2', passengerName: 'Kavita Mehra', age: 47, gender: 'FEMALE', pnr: 'FLX-DEL-2611-1004', contactPhone: '+91 9811223344', contactEmail: 'rajesh@example.com', seatPrice: 650, bookingStatus: 'CONFIRMED' },
-    { seatNumber: 'U3', passengerName: 'Rohit Joshi', age: 24, gender: 'MALE', pnr: 'FLX-DEL-2611-1005', contactPhone: '+91 9988776655', contactEmail: 'rohit@example.com', seatPrice: 650, bookingStatus: 'CONFIRMED' },
-    { seatNumber: 'U4', passengerName: 'Pooja Nair', age: 26, gender: 'FEMALE', pnr: 'FLX-DEL-2611-1006', contactPhone: '+91 9877665544', contactEmail: 'pooja@example.com', seatPrice: 650, bookingStatus: 'CANCELLED', cancellationFee: 65, refundAmount: 585 },
+    { seatNumber: 'L1', passengerName: 'Amitabh Sharma', age: 34, gender: 'MALE', pnr: 'GB-DEL-2611-1001', contactPhone: '+91 9876543210', contactEmail: 'amitabh@example.com', seatPrice: 650, bookingStatus: 'CONFIRMED' },
+    { seatNumber: 'L2', passengerName: 'Deepika Sharma', age: 31, gender: 'FEMALE', pnr: 'GB-DEL-2611-1001', contactPhone: '+91 9876543210', contactEmail: 'amitabh@example.com', seatPrice: 650, bookingStatus: 'CONFIRMED' },
+    { seatNumber: 'L3', passengerName: 'Vikram Seth', age: 42, gender: 'MALE', pnr: 'GB-DEL-2611-1002', contactPhone: '+91 9822334455', contactEmail: 'vikram@example.com', seatPrice: 650, bookingStatus: 'CONFIRMED' },
+    { seatNumber: 'L4', passengerName: 'Sunita Rao', age: 29, gender: 'FEMALE', pnr: 'GB-DEL-2611-1003', contactPhone: '+91 9899112233', contactEmail: 'sunita@example.com', seatPrice: 650, bookingStatus: 'CONFIRMED' },
+    { seatNumber: 'U1', passengerName: 'Rajesh Mehra', age: 50, gender: 'MALE', pnr: 'GB-DEL-2611-1004', contactPhone: '+91 9811223344', contactEmail: 'rajesh@example.com', seatPrice: 650, bookingStatus: 'CONFIRMED' },
+    { seatNumber: 'U2', passengerName: 'Kavita Mehra', age: 47, gender: 'FEMALE', pnr: 'GB-DEL-2611-1004', contactPhone: '+91 9811223344', contactEmail: 'rajesh@example.com', seatPrice: 650, bookingStatus: 'CONFIRMED' },
+    { seatNumber: 'U3', passengerName: 'Rohit Joshi', age: 24, gender: 'MALE', pnr: 'GB-DEL-2611-1005', contactPhone: '+91 9988776655', contactEmail: 'rohit@example.com', seatPrice: 650, bookingStatus: 'CONFIRMED' },
+    { seatNumber: 'U4', passengerName: 'Pooja Nair', age: 26, gender: 'FEMALE', pnr: 'GB-DEL-2611-1006', contactPhone: '+91 9877665544', contactEmail: 'pooja@example.com', seatPrice: 650, bookingStatus: 'CANCELLED', cancellationFee: 65, refundAmount: 585 },
   ],
 };
 

@@ -19,12 +19,12 @@ describe('Transactional Booking Engine (FOR UPDATE & Unique PNR)', () => {
   });
 
   describe('PNR & Fare Breakdown Unit Tests', () => {
-    it('generatePnrCode() should emit realistic Indian FLX-CITY-YYMM-XXXX format', () => {
+    it('generatePnrCode() should emit realistic Indian GB-CITY-YYMM-XXXX format', () => {
       const pnr = generatePnrCode('Delhi', new Date('2026-11-12T10:00:00.000Z'));
-      assert.match(pnr, /^FLX-DEL-2611-\d{4}$/);
+      assert.match(pnr, /^GB-DEL-2611-\d{4}$/);
 
       const blrPnr = generatePnrCode('Bangalore', new Date('2026-12-01T00:00:00.000Z'));
-      assert.match(blrPnr, /^FLX-BAN-2612-\d{4}$/);
+      assert.match(blrPnr, /^GB-BAN-2612-\d{4}$/);
     });
 
     it('calculateBookingFareSummary() should compute seat subtotal, add-ons, and 5% GST in INR', () => {
@@ -154,7 +154,7 @@ describe('Transactional Booking Engine (FOR UPDATE & Unique PNR)', () => {
 
       assert.equal(res.status, 201);
       assert.equal(res.body.success, true);
-      assert.match(res.body.data.booking.pnr, /^FLX-MUM-\d{4}-\d{4}$/);
+      assert.match(res.body.data.booking.pnr, /^GB-MUM-\d{4}-\d{4}$/);
       assert.equal(res.body.data.booking.totalAmount, 1312.5); // 1250 + 5% GST
       assert.equal(pnrChecks, 2);
       assert.match(queryRawSql, /FOR UPDATE/);
@@ -229,7 +229,7 @@ describe('Transactional Booking Engine (FOR UPDATE & Unique PNR)', () => {
           passengers: [{ fullName: 'Guest Rider', age: 30, gender: 'OTHER', seatNumber: '1A' }],
         });
       assert.equal(okRes.status, 201);
-      assert.match(okRes.body.data.booking.pnr, /^FLX-DEL-\d{4}-\d{4}$/);
+      assert.match(okRes.body.data.booking.pnr, /^GB-DEL-\d{4}-\d{4}$/);
     });
   });
 });

@@ -118,7 +118,7 @@
         "type": "object",
         "properties": {
           "id": { "type": "string", "format": "uuid" },
-          "pnr": { "type": "string", "example": "FLX-DEL-2611-1001" },
+          "pnr": { "type": "string", "example": "GB-DEL-2611-1001" },
           "userId": { "type": "string", "format": "uuid", "nullable": true },
           "tripId": { "type": "string", "format": "uuid" },
           "totalAmount": { "type": "number", "example": 1365 },
@@ -469,7 +469,7 @@
         "tags": ["Booking & Checkout"],
         "summary": "Fetch public digital e-ticket and boarding pass by PNR code",
         "parameters": [
-          { "name": "pnr", "in": "path", "required": true, "schema": { "type": "string", "example": "FLX-DEL-2611-1001" } }
+          { "name": "pnr", "in": "path", "required": true, "schema": { "type": "string", "example": "GB-DEL-2611-1001" } }
         ],
         "responses": {
           "200": { "description": "E-ticket payload with QR verification data and passenger manifest" },

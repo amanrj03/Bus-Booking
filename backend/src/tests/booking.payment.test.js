@@ -94,7 +94,7 @@ describe('Simulated Payment Confirmation & BookingSeat Settlement', () => {
 
       assert.equal(res.status, 201);
       assert.equal(res.body.success, true);
-      assert.match(res.body.data.booking.pnr, /^FLX-BAN-\d{4}-\d{4}$/);
+      assert.match(res.body.data.booking.pnr, /^GB-BAN-\d{4}-\d{4}$/);
       assert.equal(res.body.data.payment.paymentMethod, 'UPI');
       assert.equal(res.body.data.payment.paymentStatus, 'SUCCESS');
       assert.match(res.body.data.payment.transactionReference, /^TXN-SIM-UPI-\d{6}$/);
@@ -154,7 +154,7 @@ describe('Simulated Payment Confirmation & BookingSeat Settlement', () => {
         findMany: async () => [
           {
             id: 'b-hist-1',
-            pnr: 'FLX-DEL-2611-1234',
+            pnr: 'GB-DEL-2611-1234',
             userId: 'user-pass-1',
             totalAmount: 1312.5,
             status: 'CONFIRMED',
@@ -178,16 +178,16 @@ describe('Simulated Payment Confirmation & BookingSeat Settlement', () => {
 
       assert.equal(res.status, 200);
       assert.equal(res.body.data.bookings.length, 1);
-      assert.equal(res.body.data.bookings[0].pnr, 'FLX-DEL-2611-1234');
+      assert.equal(res.body.data.bookings[0].pnr, 'GB-DEL-2611-1234');
     });
 
     it('GET /api/v1/bookings/pnr/:pnr should return public e-ticket details or 404', async () => {
       prisma.booking = {
         findUnique: async ({ where }) =>
-          where.pnr === 'FLX-DEL-2611-9999'
+          where.pnr === 'GB-DEL-2611-9999'
             ? {
                 id: 'b-eticket-1',
-                pnr: 'FLX-DEL-2611-9999',
+                pnr: 'GB-DEL-2611-9999',
                 totalAmount: 997.5,
                 status: 'CONFIRMED',
                 trip: { route: { sourceCity: 'Delhi', destinationCity: 'Jaipur', routeStops: [] }, bus: {} },
@@ -197,7 +197,7 @@ describe('Simulated Payment Confirmation & BookingSeat Settlement', () => {
             : null,
       };
 
-      const okRes = await request(app).get('/api/v1/bookings/pnr/FLX-DEL-2611-9999');
+      const okRes = await request(app).get('/api/v1/bookings/pnr/GB-DEL-2611-9999');
       assert.equal(okRes.status, 200);
       assert.equal(okRes.body.data.booking.passengers.length, 1);
 

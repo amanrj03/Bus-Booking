@@ -10,7 +10,7 @@ const futureArrival = new Date(Date.now() + 42 * 60 * 60 * 1000).toISOString();
 
 const confirmedBooking = {
   id: 'bkg-conf-1',
-  pnr: 'FLX-DEL-2026-1111',
+  pnr: 'GB-DEL-2026-1111',
   status: 'CONFIRMED',
   totalAmount: 1000,
   createdAt: '2026-11-12T08:00:00.000Z',
@@ -32,7 +32,7 @@ const confirmedBooking = {
 
 const cancelledBooking = {
   id: 'bkg-canc-2',
-  pnr: 'FLX-MUM-2026-2222',
+  pnr: 'GB-MUM-2026-2222',
   status: 'CANCELLED',
   totalAmount: 800,
   createdAt: '2026-11-10T10:00:00.000Z',
@@ -76,8 +76,8 @@ describe('Passenger Portal: MyBookingsPage & CancellationModal Suite', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('FLX-DEL-2026-1111')).toBeTruthy();
-      expect(screen.getByText('FLX-MUM-2026-2222')).toBeTruthy();
+      expect(screen.getByText('GB-DEL-2026-1111')).toBeTruthy();
+      expect(screen.getByText('GB-MUM-2026-2222')).toBeTruthy();
     });
 
     expect(screen.getByText('Delhi')).toBeTruthy();
@@ -160,7 +160,7 @@ describe('Passenger Portal: MyBookingsPage & CancellationModal Suite', () => {
       expect(cancelSpy).toHaveBeenCalledWith('bkg-conf-1', {
         reason: 'Change of travel plans',
       });
-      expect(screen.getByText(/Booking FLX-DEL-2026-1111 cancelled successfully/i)).toBeTruthy();
+      expect(screen.getByText(/Booking GB-DEL-2026-1111 cancelled successfully/i)).toBeTruthy();
     });
 
     expect(fetchSpy).toHaveBeenCalledTimes(2);

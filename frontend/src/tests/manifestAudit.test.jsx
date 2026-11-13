@@ -36,7 +36,7 @@ const sampleManifestData = {
       passengerName: 'Amitabh Sharma',
       age: 34,
       gender: 'MALE',
-      pnr: 'FLX-DEL-1001',
+      pnr: 'GB-DEL-1001',
       contactPhone: '+91 9876543210',
       contactEmail: 'amitabh@example.com',
       seatPrice: 650,
@@ -47,7 +47,7 @@ const sampleManifestData = {
       passengerName: 'Deepika Sharma',
       age: 31,
       gender: 'FEMALE',
-      pnr: 'FLX-DEL-1001',
+      pnr: 'GB-DEL-1001',
       contactPhone: '+91 9876543210',
       contactEmail: 'amitabh@example.com',
       seatPrice: 650,
@@ -66,7 +66,7 @@ const sampleAuditLogs = {
       createdAt: '2026-11-12T10:00:00.000Z',
       ipAddress: '127.0.0.1',
       user: { name: 'Aman Sharma', email: 'passenger@bus.local', role: 'PASSENGER' },
-      details: { pnr: 'FLX-DEL-1001', seatNumbers: ['L1', 'L2'], totalAmount: 1300 },
+      details: { pnr: 'GB-DEL-1001', seatNumbers: ['L1', 'L2'], totalAmount: 1300 },
     },
     {
       id: 'log-2',
@@ -76,7 +76,7 @@ const sampleAuditLogs = {
       createdAt: '2026-11-12T11:00:00.000Z',
       ipAddress: '127.0.0.1',
       user: { name: 'Aman Sharma', email: 'passenger@bus.local', role: 'PASSENGER' },
-      details: { pnr: 'FLX-MUM-2002', cancellationFee: 130, refundAmount: 1170 },
+      details: { pnr: 'GB-MUM-2002', cancellationFee: 130, refundAmount: 1170 },
     },
   ],
   pagination: { page: 1, limit: 25, total: 2, totalPages: 1 },
@@ -153,7 +153,7 @@ describe('Passenger Manifest & Audit Log Viewer Suite', () => {
       fireEvent.click(inspectButtons[0]);
 
       await waitFor(() => {
-        expect(screen.getByText(/FLX-DEL-1001/i)).toBeTruthy();
+        expect(screen.getByText(/GB-DEL-1001/i)).toBeTruthy();
       });
     });
 

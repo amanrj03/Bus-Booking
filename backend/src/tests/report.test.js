@@ -83,7 +83,7 @@ describe('Reports API: Passenger Manifest, Occupancy % & Revenue Summary Suite',
           bookings: [
             {
               id: 'bkg-1',
-              pnr: 'FLX-DEL-2026-0001',
+              pnr: 'GB-DEL-2026-0001',
               status: 'CONFIRMED',
               totalAmount: 1365,
               contactEmail: 'a@test.com',

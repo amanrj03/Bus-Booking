@@ -31,7 +31,7 @@ describe('Centralized Audit Trail Suite', () => {
       action: AUDIT_ACTIONS.BOOKING_CREATED,
       entity: 'Booking',
       entityId: 'b-99',
-      details: { pnr: 'FLX-DEL-1001' },
+      details: { pnr: 'GB-DEL-1001' },
       ipAddress: '127.0.0.1',
       tx: mockTx,
     });

@@ -589,8 +589,8 @@ async function main() {
     const isCancelled = bIdx >= 575;
     const bookingStatus = isCancelled ? 'CANCELLED' : 'CONFIRMED';
 
-    // Unique PNR: e.g. FLX-DEL-2611-1001
-    const pnr = `FLX-${tripObj.route.sourceCity.substring(0, 3).toUpperCase()}-2611-${bookingCounter}`;
+    // Unique PNR: e.g. GB-DEL-2611-1001
+    const pnr = `GB-${tripObj.route.sourceCity.substring(0, 3).toUpperCase()}-2611-${bookingCounter}`;
 
     // Seats count for this booking (1 to 3 passengers)
     const partySize = (bIdx % 3) + 1;

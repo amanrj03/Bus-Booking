@@ -10,7 +10,7 @@ function getCityCode(cityName = 'IND') {
 }
 
 /**
- * Generates a realistic unique PNR code matching format: FLX-DEL-2611-9876
+ * Generates a realistic unique PNR code matching format: GB-DEL-2611-9876
  *
  * @param {string} [sourceCity]
  * @param {Date} [date]
@@ -21,7 +21,7 @@ function generatePnrCode(sourceCity = 'IND', date = new Date()) {
   const yy = String(date.getUTCFullYear()).slice(-2);
   const mm = String(date.getUTCMonth() + 1).padStart(2, '0');
   const randomDigits = crypto.randomInt(1000, 10000);
-  return `FLX-${cityCode}-${yy}${mm}-${randomDigits}`;
+  return `GB-${cityCode}-${yy}${mm}-${randomDigits}`;
 }
 
 /**
