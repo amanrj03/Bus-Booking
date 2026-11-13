@@ -27,7 +27,7 @@ export default function Navbar({ user = null, onOpenAuth = () => {}, onLogout = 
           className="flex items-center gap-2 cursor-pointer font-black text-2xl tracking-tighter"
         >
           <span className="text-white text-3xl font-extrabold italic tracking-tight drop-shadow-xs">
-            FLIXBUS
+            GoBus
           </span>
           <span className="text-[10px] bg-[#131b26] text-white px-2 py-0.5 rounded font-bold uppercase tracking-wider">
             India

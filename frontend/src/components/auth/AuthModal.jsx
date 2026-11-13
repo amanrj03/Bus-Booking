@@ -109,7 +109,7 @@ export default function AuthModal() {
             {/* Header Brand */}
             <div className="flex justify-center mb-3">
               <span className="bg-[#73d200] text-gray-900 font-black px-4 py-1 rounded text-xl tracking-tighter italic">
-                FLIXBUS
+                GoBus
               </span>
             </div>
 

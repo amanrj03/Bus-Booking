@@ -99,7 +99,7 @@ export default function HomePage() {
 
   return (
     <div className="flex-1 flex flex-col">
-      {/* FlixBus-inspired Hero Banner */}
+      {/* GoBus Hero Banner */}
       <section className="relative bg-gradient-to-br from-[#131b26] via-gray-900 to-gray-800 text-white pt-14 pb-20 px-4 overflow-hidden">
         <div
           aria-hidden="true"

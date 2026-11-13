@@ -16,7 +16,7 @@ export default function Footer() {
           <div>
             <div className="flex items-center gap-2 mb-3">
               <span className="text-[#73d200] text-2xl font-black italic tracking-tighter">
-                FLIXBUS
+                GoBus
               </span>
               <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded font-bold uppercase">
                 India

@@ -45,3 +45,4 @@ describe('Swagger / OpenAPI 3.0 Documentation Suite', () => {
     assert.ok(openapiSpec.components.schemas.Trip);
   });
 });
+

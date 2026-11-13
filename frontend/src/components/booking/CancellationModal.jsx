@@ -227,3 +227,4 @@ export default function CancellationModal({ booking, isOpen, onClose, onCancelle
     </Modal>
   );
 }
+

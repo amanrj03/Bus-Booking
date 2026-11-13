@@ -72,7 +72,7 @@ describe('Seat Layout Utilities & Availability Render Tests', () => {
       expect(onToggle).toHaveBeenCalledTimes(1);
     });
 
-    it('renders SELECTED state with Flix lime styling and aria-pressed=true', () => {
+    it('renders SELECTED state with GoBus lime styling and aria-pressed=true', () => {
       render(<SeatItem seat={sample2x2Seats[0]} isSelected onToggle={() => {}} />);
 
       const btn = screen.getByRole('button', { name: /Seat 1A, Selected/i });

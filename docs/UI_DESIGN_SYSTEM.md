@@ -4,7 +4,7 @@
 **Internship Assessment:** Algions AI Labs Private Limited  
 **Reference Source:** `UI_INSPIRATION/`  
 **Icon Standard:** `@heroicons/react` (Exclusively)  
-**Theme:** Modern European/Indian Intercity Coach Platform (FlixBus-inspired)  
+**Theme:** Modern European/Indian Intercity Coach Platform (GoBus)  
 
 ---
 

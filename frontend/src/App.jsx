@@ -70,6 +70,22 @@ function AppShell() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/admin/manifest"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN', 'OPERATOR']}>
+              <PassengerManifestPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/audit-logs"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <AuditLogsPage />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
       <AuthModal />
     </MainLayout>
