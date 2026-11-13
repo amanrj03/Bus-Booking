@@ -4,10 +4,9 @@
  * cancellations, simulated payments, and audit logs.
  */
 
-const { PrismaClient } = require('@prisma/client');
+require('dotenv').config();
+const prisma = require('../src/config/prisma');
 const bcrypt = require('bcryptjs');
-
-const prisma = new PrismaClient();
 
 // Helper to chunk arrays for batch creation
 function chunkArray(array, chunkSize) {
