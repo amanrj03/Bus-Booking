@@ -501,3 +501,4 @@ flowchart TD
 | `Booking` | `BookingSeat` | `1 : 1..N` | `BookingSeat.bookingId` | `Cascade` | Seat allocations are owned by the booking transaction. |
 | `Booking` | `Payment` | `1 : 1` | `Payment.bookingId` | `Cascade` | Financial payment transaction is tied 1:1 to booking. |
 | `Booking` | `Cancellation` | `1 : 0..1` | `Cancellation.bookingId` | `Cascade` | Cancellation refund audit record linked 1:1 with booking. |
+
