@@ -157,4 +157,41 @@ describe('CitySearchInput & Auto-Suggest Suite', () => {
     expect(capturedSearch.sourceCity).toBe('Jaipur');
     expect(capturedSearch.destinationCity).toBe('Delhi');
   });
+
+  it('opens interactive calendar on calendar icon click and allows picking year, month, and date', () => {
+    let chosenDate = '2026-11-15';
+    render(
+      <MemoryRouter>
+        <HeroSearchWidget
+          initialFrom="Delhi"
+          initialTo="Jaipur"
+          initialDate={chosenDate}
+          onSearch={() => {}}
+        />
+      </MemoryRouter>
+    );
+
+    // Click calendar button
+    const calBtn = screen.getByRole('button', { name: /open departure calendar/i });
+    expect(calBtn).toBeTruthy();
+
+    // Calendar popover should not be visible initially
+    expect(screen.queryByText('Today')).toBeNull();
+
+    fireEvent.click(calBtn);
+
+    // Calendar popover opens
+    expect(screen.getByText('Today')).toBeTruthy();
+    expect(screen.getByText('Tomorrow')).toBeTruthy();
+    expect(screen.getByText('November')).toBeTruthy();
+
+    // Click day 27
+    const day27Btn = screen.getByRole('button', { name: '27' });
+    expect(day27Btn).toBeTruthy();
+    fireEvent.click(day27Btn);
+
+    // Popover should close and date should be Fri, 27 Nov
+    expect(screen.queryByText('Today')).toBeNull();
+    expect(screen.getByText(/27 Nov/i)).toBeTruthy();
+  });
 });
