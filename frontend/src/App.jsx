@@ -13,6 +13,7 @@ import MyBookingsPage from './pages/MyBookingsPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import PassengerManifestPage from './pages/PassengerManifestPage';
 import AuditLogsPage from './pages/AuditLogsPage';
+import ServicesPage from './pages/ServicesPage';
 
 function AppShell() {
   const { user, openAuthModal, logout } = useAuth();
@@ -22,6 +23,8 @@ function AppShell() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/search" element={<SearchResultsPage />} />
+        <Route path="/services" element={<ServicesPage />} />
+        <Route path="/services/:section" element={<ServicesPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/booking/confirmation/:pnr" element={<BookingConfirmationPage />} />
         <Route path="/ticket/:pnr" element={<BookingConfirmationPage />} />

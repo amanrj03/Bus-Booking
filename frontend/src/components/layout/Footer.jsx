@@ -77,13 +77,18 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/my-bookings" className="hover:text-[#73d200] transition-colors">
-                  Manage Booking / Cancel
+                <Link to="/services" className="hover:text-[#73d200] transition-colors">
+                  All Services & Lounges
+                </Link>
+              </li>
+              <li>
+                <Link to="/services/luggage" className="hover:text-[#73d200] transition-colors">
+                  Luggage Policy & Allowance
                 </Link>
               </li>
               <li>
                 <Link to="/my-bookings" className="hover:text-[#73d200] transition-colors">
-                  Print E-Ticket (PNR)
+                  Manage Booking / Cancel
                 </Link>
               </li>
               <li>
