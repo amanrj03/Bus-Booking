@@ -85,6 +85,19 @@ export default function DepartureDatePicker({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // When calendar opens, reset viewYear and viewMonth to the selected date
+  const handleToggleOpen = () => {
+    setIsOpen((prev) => {
+      const next = !prev;
+      if (next) {
+        const p = parseYMD(value);
+        setViewYear(p.year);
+        setViewMonth(p.month);
+      }
+      return next;
+    });
+  };
+
   const formatDisplayDate = (dateStr) => {
     try {
       const parts = dateStr.split('-');
@@ -144,6 +157,8 @@ export default function DepartureDatePicker({
     const target = new Date(Number(minParts[0]), Number(minParts[1]) - 1, Number(minParts[2]));
     target.setDate(target.getDate() + offsetDays);
     const ymd = toYMD(target.getFullYear(), target.getMonth(), target.getDate());
+    setViewYear(target.getFullYear());
+    setViewMonth(target.getMonth());
     onChange(ymd);
     setIsOpen(false);
   };
@@ -186,7 +201,7 @@ export default function DepartureDatePicker({
     <div className="relative w-full" ref={containerRef}>
       {/* Departure Trigger Box */}
       <div
-        onClick={() => setIsOpen((prev) => !prev)}
+        onClick={handleToggleOpen}
         className={`border rounded-xl px-3 py-2 bg-white transition-all cursor-pointer flex items-center justify-between gap-1.5 ${
           isOpen
             ? 'border-[#73d200] ring-2 ring-[#73d200]/20'
