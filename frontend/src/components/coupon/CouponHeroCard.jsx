@@ -7,18 +7,27 @@ import {
 } from '@heroicons/react/24/outline';
 import { fetchActiveCoupons } from '../../services/coupon.service';
 
+const DEFAULT_FEATURED_COUPON = {
+  code: 'HOPON9',
+  description: 'Flat 15% off your festive travels',
+  discountType: 'PERCENTAGE',
+  discountValue: 15,
+  expiryDate: '2026-11-30T23:59:59.000Z',
+};
+
 export default function CouponHeroCard() {
-  const [coupon, setCoupon] = useState(null);
-  const [dismissed, setDismissed] = useState(false);
+  const [coupon, setCoupon] = useState(DEFAULT_FEATURED_COUPON);
+  const [dismissed, setDismissed] = useState(() => {
+    try {
+      return sessionStorage.getItem('gobus_hide_hero_coupon') === 'true';
+    } catch {
+      return false;
+    }
+  });
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    // Check if user previously dismissed coupon popup in this session
-    const isDismissed = sessionStorage.getItem('gobus_hide_hero_coupon') === 'true';
-    if (isDismissed) {
-      setDismissed(true);
-      return;
-    }
+    if (dismissed) return;
 
     let isMounted = true;
     fetchActiveCoupons()
@@ -32,20 +41,13 @@ export default function CouponHeroCard() {
         setCoupon(featured);
       })
       .catch(() => {
-        // Fallback default coupon if offline
-        setCoupon({
-          code: 'HOPON9',
-          description: 'Flat 15% off your festive travels',
-          discountType: 'PERCENTAGE',
-          discountValue: 15,
-          expiryDate: '2026-11-30T23:59:59.000Z',
-        });
+        // Keep default fallback
       });
 
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [dismissed]);
 
   const handleDismiss = () => {
     setDismissed(true);

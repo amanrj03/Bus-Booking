@@ -100,39 +100,47 @@ export default function HomePage() {
 
   return (
     <div className="flex-1 flex flex-col">
-      {/* GoBus Hero Banner with Scenic Bus Background & Floating Coupon Offer */}
-      <section
-        className="relative bg-cover bg-center text-white pt-8 px-4 flex flex-col justify-between"
-        style={{
-          backgroundImage: `url('/dashboardimage.png')`,
-          backgroundPosition: 'center 40%',
-        }}
-      >
-        {/* Subtle cinematic dark gradient overlay ensuring high contrast for text */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/60 pointer-events-none" />
+      {/* GoBus Hero Banner with 100% Full Uncropped Background Image & Floating Coupon Offer */}
+      <section className="relative w-full bg-[#f8f9fa] select-none">
+        {/* Full Scenic Background Image Container - 100% Visible, Zero Crop */}
+        <div className="relative w-full overflow-hidden">
+          <img
+            src="/dashboardimage.png"
+            alt="GoBus Intercity Scenic Mountain Fleet"
+            className="w-full h-auto block select-none pointer-events-none"
+          />
 
-        <div className="max-w-6xl mx-auto w-full relative z-10 flex flex-col pt-2">
-          {/* Top Row: Floating Coupon Card positioned top right (matches reference image) */}
-          <div className="flex justify-end mb-6 md:mb-10">
+          {/* Subtle gradient overlay ensuring high contrast for text while keeping the bus vibrant */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/15 pointer-events-none" />
+
+          {/* Top-Right: Floating Coupon Card positioned on the scenic forest side (matches reference design) */}
+          <div className="hidden sm:block absolute top-3 sm:top-5 md:top-7 right-4 sm:right-6 md:right-8 lg:right-12 z-20">
             <CouponHeroCard />
           </div>
 
-          {/* Hero Heading */}
-          <div className="mb-6 md:mb-8">
-            <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white drop-shadow-md">
-              Book bus tickets online
-            </h1>
-          </div>
-
-          {/* Prominent Search Widget - Positioned 75% below the bottom edge of the hero background image */}
-          <div className="-mb-36 sm:-mb-40 md:-mb-44 relative z-30">
-            <HeroSearchWidget cities={cities} />
+          {/* Hero Heading: Positioned near the bottom-left of the hero image, right above the search box */}
+          <div className="absolute bottom-11 sm:bottom-12 md:bottom-14 lg:bottom-16 left-0 right-0 z-20 pointer-events-none">
+            <div className="max-w-6xl mx-auto px-4">
+              <h1 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]">
+                Book bus tickets online
+              </h1>
+            </div>
           </div>
         </div>
-      </section>
 
-      {/* Spacing for the 75% overlapping search card */}
-      <div className="pt-40 sm:pt-44 md:pt-48" />
+        {/* Mobile Coupon Card (visible below image on small screens) */}
+        <div className="sm:hidden px-4 pt-3 flex justify-center">
+          <CouponHeroCard />
+        </div>
+
+        {/* Prominent Search Widget - Positioned so 75% of box height sits below the hero image bottom edge */}
+        <div className="relative z-30 max-w-6xl mx-auto px-4 -mt-7 sm:-mt-8 md:-mt-9 lg:-mt-10">
+          <HeroSearchWidget cities={cities} />
+        </div>
+
+        {/* Spacing for the 75% overlapping search box */}
+        <div className="pb-8 sm:pb-10 md:pb-12" />
+      </section>
 
       {/* Popular Indian Intercity Corridors */}
       <section className="max-w-6xl mx-auto px-4 py-12 w-full">
