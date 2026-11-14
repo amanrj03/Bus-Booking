@@ -75,3 +75,12 @@
     font-size: 10px !important;
   }
 }
+
+/* Hide native browser datalist & search picker icons */
+input::-webkit-calendar-picker-indicator,
+input::-webkit-search-cancel-button,
+input::-webkit-search-decoration {
+  display: none !important;
+  -webkit-appearance: none;
+}
+

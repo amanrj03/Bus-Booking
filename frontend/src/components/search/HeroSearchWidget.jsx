@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  MapPinIcon,
   CalendarDaysIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -9,25 +8,8 @@ import {
 } from '@heroicons/react/24/solid';
 import { ArrowsRightLeftIcon } from '@heroicons/react/24/outline';
 import { Alert } from '../ui';
-
-const DEFAULT_INDIAN_CITIES = [
-  'Delhi',
-  'Jaipur',
-  'Mumbai',
-  'Pune',
-  'Bangalore',
-  'Chennai',
-  'Hyderabad',
-  'Chandigarh',
-  'Manali',
-  'Udaipur',
-  'Ahmedabad',
-  'Goa',
-  'Phagwara',
-  'Agra',
-  'Lucknow',
-  'Jodhpur',
-];
+import CitySearchInput from './CitySearchInput';
+import { getUnifiedCities } from '../../config/citiesConfig';
 
 function getLocalDateString(offsetDays = 0) {
   const d = new Date();
@@ -39,7 +21,7 @@ function getLocalDateString(offsetDays = 0) {
 }
 
 export default function HeroSearchWidget({
-  cities = DEFAULT_INDIAN_CITIES,
+  cities = [],
   initialFrom = 'Delhi',
   initialTo = 'Jaipur',
   initialDate = getLocalDateString(0),
@@ -57,7 +39,8 @@ export default function HeroSearchWidget({
   const [swapped, setSwapped] = useState(false);
   const [validationError, setValidationError] = useState('');
 
-  const availableCities = cities.length > 0 ? cities : DEFAULT_INDIAN_CITIES;
+  // Combine default Indian cities catalog with any dynamic cities from API
+  const unifiedCities = useMemo(() => getUnifiedCities(cities), [cities]);
 
   const handleSwapCities = () => {
     setFromCity(toCity);
@@ -179,36 +162,22 @@ export default function HeroSearchWidget({
           </Alert>
         )}
 
-        <datalist id="indian-bus-cities">
-          {availableCities.map((city) => (
-            <option key={city} value={city} />
-          ))}
-        </datalist>
-
         {/* Input Fields Row */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
-          {/* From City */}
-          <div className="md:col-span-3 border border-gray-300 rounded-xl px-3.5 py-2.5 bg-white hover:border-gray-400 focus-within:border-[#73d200] transition-colors flex items-center gap-2.5">
-            <MapPinIcon className="w-5 h-5 text-gray-400 shrink-0" />
-            <div className="flex-1 min-w-0">
-              <label
-                htmlFor="hero-from-city"
-                className="text-[10px] uppercase font-bold tracking-wider text-gray-400 block"
-              >
-                From
-              </label>
-              <input
-                id="hero-from-city"
-                list="indian-bus-cities"
-                value={fromCity}
-                onChange={(e) => {
-                  setFromCity(e.target.value);
-                  setValidationError('');
-                }}
-                placeholder="Origin city"
-                className="w-full bg-transparent font-bold text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
-              />
-            </div>
+          {/* FROM City with Custom Auto-Suggest Popover */}
+          <div className="md:col-span-3">
+            <CitySearchInput
+              id="hero-from-city"
+              label="From"
+              value={fromCity}
+              onChange={(val) => {
+                setFromCity(val);
+                setValidationError('');
+              }}
+              placeholder="Origin city"
+              allCities={unifiedCities}
+              hasError={Boolean(validationError && !fromCity)}
+            />
           </div>
 
           {/* Swap Button */}
@@ -228,28 +197,20 @@ export default function HeroSearchWidget({
             </button>
           </div>
 
-          {/* To City */}
-          <div className="md:col-span-3 border border-gray-300 rounded-xl px-3.5 py-2.5 bg-white hover:border-gray-400 focus-within:border-[#73d200] transition-colors flex items-center gap-2.5">
-            <MapPinIcon className="w-5 h-5 text-gray-400 shrink-0" />
-            <div className="flex-1 min-w-0">
-              <label
-                htmlFor="hero-to-city"
-                className="text-[10px] uppercase font-bold tracking-wider text-gray-400 block"
-              >
-                To
-              </label>
-              <input
-                id="hero-to-city"
-                list="indian-bus-cities"
-                value={toCity}
-                onChange={(e) => {
-                  setToCity(e.target.value);
-                  setValidationError('');
-                }}
-                placeholder="Destination city"
-                className="w-full bg-transparent font-bold text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
-              />
-            </div>
+          {/* TO City with Custom Auto-Suggest Popover */}
+          <div className="md:col-span-3">
+            <CitySearchInput
+              id="hero-to-city"
+              label="To"
+              value={toCity}
+              onChange={(val) => {
+                setToCity(val);
+                setValidationError('');
+              }}
+              placeholder="Destination city"
+              allCities={unifiedCities}
+              hasError={Boolean(validationError && !toCity)}
+            />
           </div>
 
           {/* Departure Date with < > Step Buttons */}
@@ -328,7 +289,7 @@ export default function HeroSearchWidget({
           </div>
         </div>
 
-        {/* Search CTA Button - Full width row or inline */}
+        {/* Search CTA Button */}
         <div className="flex justify-end pt-1">
           <button
             type="submit"
