@@ -124,15 +124,15 @@ export default function HomePage() {
             </h1>
           </div>
 
-          {/* Prominent Search Widget - Bottom of background image passes through horizontal center */}
-          <div className="-mb-20 md:-mb-24 relative z-30">
+          {/* Prominent Search Widget - Positioned 75% below the bottom edge of the hero background image */}
+          <div className="-mb-36 sm:-mb-40 md:-mb-44 relative z-30">
             <HeroSearchWidget cities={cities} />
           </div>
         </div>
       </section>
 
-      {/* Spacing for overlapping search card (replacing removed GST banner) */}
-      <div className="pt-24 md:pt-28" />
+      {/* Spacing for the 75% overlapping search card */}
+      <div className="pt-40 sm:pt-44 md:pt-48" />
 
       {/* Popular Indian Intercity Corridors */}
       <section className="max-w-6xl mx-auto px-4 py-12 w-full">
