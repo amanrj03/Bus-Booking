@@ -11,6 +11,7 @@ import {
   ClipboardDocumentListIcon,
   ShieldCheckIcon,
   BuildingOfficeIcon,
+  TagIcon,
 } from '@heroicons/react/24/solid';
 import {
   ResponsiveContainer,
@@ -30,6 +31,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { Button, Badge, Card, Alert } from '../components/ui';
 import { fetchRevenueReport, fetchOccupancyReport } from '../services/report.service';
+import AdminCouponManager from '../components/admin/AdminCouponManager';
 
 const PIE_COLORS = ['#73d200', '#131b26', '#3b82f6', '#f59e0b', '#8b5cf6', '#06b6d4'];
 
@@ -104,6 +106,7 @@ export default function AdminDashboardPage() {
   const [revenueData, setRevenueData] = useState(null);
   const [occupancyData, setOccupancyData] = useState(null);
   const [lastRefreshed, setLastRefreshed] = useState(() => new Date());
+  const [activeTab, setActiveTab] = useState('ANALYTICS');
 
   const loadDashboardMetrics = async () => {
     setLoading(true);
@@ -225,8 +228,39 @@ export default function AdminDashboardPage() {
 
         {error && <Alert type="warning">{error}</Alert>}
 
-        {/* 4 Primary KPI Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {/* Admin Navigation Tabs */}
+        <div className="flex items-center gap-2 border-b border-gray-200 pb-2">
+          <button
+            type="button"
+            onClick={() => setActiveTab('ANALYTICS')}
+            className={`px-4 py-2 text-xs sm:text-sm font-bold rounded-lg transition-colors cursor-pointer ${
+              activeTab === 'ANALYTICS'
+                ? 'bg-[#131b26] text-white shadow-xs'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            Analytics & Fleet Overview
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('COUPONS')}
+            className={`px-4 py-2 text-xs sm:text-sm font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'COUPONS'
+                ? 'bg-[#131b26] text-white shadow-xs'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
+          >
+            <TagIcon className="w-4 h-4 text-[#73d200]" />
+            <span>Coupon Management</span>
+          </button>
+        </div>
+
+        {activeTab === 'COUPONS' ? (
+          <AdminCouponManager />
+        ) : (
+          <>
+            {/* 4 Primary KPI Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {/* Card 1: Revenue */}
           <Card padding="p-5" className="border-l-4 border-l-[#73d200] shadow-xs space-y-2">
             <div className="flex items-center justify-between text-gray-500">
@@ -532,6 +566,8 @@ export default function AdminDashboardPage() {
             </div>
           </div>
         </div>
+        </>
+        )}
       </div>
     </div>
   );

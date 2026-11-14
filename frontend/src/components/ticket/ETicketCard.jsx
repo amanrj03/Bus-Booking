@@ -326,6 +326,13 @@ export default function ETicketCard({ booking }) {
             )}
           </div>
 
+          {Number(booking.discountAmount || 0) > 0 && (
+            <div className="flex items-center justify-between text-xs text-emerald-700 font-bold border-t border-dashed border-emerald-200 pt-2">
+              <span>Promotional Discount Applied:</span>
+              <span>-₹{Number(booking.discountAmount).toLocaleString('en-IN')}</span>
+            </div>
+          )}
+
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
             <span className="text-xs text-gray-600">
               Total Amount Paid (Inclusive of Base Fare, Add-ons & 5% GST):

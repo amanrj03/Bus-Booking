@@ -38,6 +38,7 @@ const createBookingSchema = z
         travelInsurance: z.boolean().default(false),
       })
       .optional(),
+    couponCode: z.string().trim().max(30).optional(),
   })
   .refine(
     (data) => {

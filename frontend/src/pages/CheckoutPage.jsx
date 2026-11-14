@@ -12,11 +12,14 @@ import {
   BuildingLibraryIcon,
   BriefcaseIcon,
   LockClosedIcon,
+  TagIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/solid';
 import { useAuth } from '../context/AuthContext';
 import { Button, Badge, Card, Input, Select, Alert } from '../components/ui';
 import { createBooking } from '../services/booking.service';
 import { releaseTripSeats } from '../services/trip.service';
+import { fetchActiveCoupons, validateCouponCode } from '../services/coupon.service';
 import { formatClockTime } from '../utils/dateUtils';
 
 const PAYMENT_TABS = [
@@ -107,6 +110,29 @@ export default function CheckoutPage() {
   const [releasing, setReleasing] = useState(false);
   const [error, setError] = useState('');
 
+  // Coupon Management
+  const [availableCoupons, setAvailableCoupons] = useState([]);
+  const [couponInput, setCouponInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState('');
+  const [couponSuccess, setCouponSuccess] = useState('');
+
+  // Fetch active promotional coupons
+  useEffect(() => {
+    let mounted = true;
+    fetchActiveCoupons()
+      .then((coupons) => {
+        if (mounted && coupons) {
+          setAvailableCoupons(coupons);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   // Sync user email/phone if auth finishes hydrating after mount
   useEffect(() => {
     if (user?.email && !contactEmail) setContactEmail(user.email);
@@ -149,9 +175,53 @@ export default function CheckoutPage() {
     const insuranceFee = travelInsurance ? 29 * lockedSeats.length : 0;
     const taxable = seatSubtotal + baggageFee + insuranceFee;
     const gstAmount = Number((taxable * 0.05).toFixed(2));
-    const totalAmount = Number((taxable + gstAmount).toFixed(2));
-    return { seatSubtotal, baggageFee, insuranceFee, gstAmount, totalAmount };
-  }, [lockedSeats, extraBaggage, travelInsurance]);
+    const preCouponTotal = Number((taxable + gstAmount).toFixed(2));
+    const discount = appliedCoupon ? Number(appliedCoupon.discountAmount || 0) : 0;
+    const totalAmount = Math.max(0, Number((preCouponTotal - discount).toFixed(2)));
+    return {
+      seatSubtotal,
+      baggageFee,
+      insuranceFee,
+      gstAmount,
+      preCouponTotal,
+      discount,
+      totalAmount,
+    };
+  }, [lockedSeats, extraBaggage, travelInsurance, appliedCoupon]);
+
+  const handleApplyCoupon = async (codeOverride) => {
+    const code = (codeOverride || couponInput).trim().toUpperCase();
+    if (!code) {
+      setCouponError('Please enter a coupon code.');
+      return;
+    }
+    setCouponLoading(true);
+    setCouponError('');
+    setCouponSuccess('');
+    try {
+      const res = await validateCouponCode(
+        code,
+        fareBreakdown.preCouponTotal,
+        contactEmail || user?.email
+      );
+      if (res?.valid && res?.coupon) {
+        setAppliedCoupon(res.coupon);
+        setCouponSuccess(`Coupon '${res.coupon.code}' applied! Saved ₹${res.coupon.discountAmount}`);
+        setCouponInput(res.coupon.code);
+      }
+    } catch (err) {
+      setCouponError(err.message || 'Invalid coupon code or booking requirements not met.');
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponInput('');
+    setCouponError('');
+    setCouponSuccess('');
+  };
 
   const handlePassengerChange = (idx, field, value) => {
     setPassengers((prev) =>
@@ -232,6 +302,7 @@ export default function CheckoutPage() {
           extraBaggage,
           travelInsurance,
         },
+        couponCode: appliedCoupon ? appliedCoupon.code : undefined,
         passengers: passengers.map((p) => ({
           fullName: p.fullName.trim(),
           age: Number(p.age),
@@ -674,8 +745,107 @@ export default function CheckoutPage() {
           </Card>
         </div>
 
-        {/* Sticky Order & Fare Summary Sidebar */}
+        {/* Sticky Order & Fare Summary Sidebar with Coupon Management */}
         <aside className="w-full lg:w-96 shrink-0 lg:sticky lg:top-20 space-y-4">
+          {/* Coupon & Promo Code Card */}
+          <Card padding="p-5" className="space-y-3.5 border border-gray-200 shadow-sm">
+            <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+              <TagIcon className="w-5 h-5 text-[#65b800]" />
+              <h3 className="text-sm font-black text-gray-900">Offers &amp; Promo Codes</h3>
+            </div>
+
+            {couponError && (
+              <Alert type="danger" onClose={() => setCouponError('')}>
+                {couponError}
+              </Alert>
+            )}
+
+            {couponSuccess && (
+              <Alert type="success" onClose={() => setCouponSuccess('')}>
+                {couponSuccess}
+              </Alert>
+            )}
+
+            {appliedCoupon ? (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
+                    <CheckCircleIcon className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="font-mono font-black text-xs text-emerald-900">
+                      {appliedCoupon.code}
+                    </span>
+                    <p className="text-[11px] text-emerald-700 font-medium">
+                      Saved ₹{fareBreakdown.discount.toFixed(2)} on total fare
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRemoveCoupon}
+                  className="text-xs font-bold text-rose-600 hover:text-rose-800 underline cursor-pointer"
+                >
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={couponInput}
+                    onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                    placeholder="Enter Coupon (e.g. HOPON9)"
+                    className="flex-1 px-3 py-2 text-xs font-bold uppercase tracking-wider border border-gray-300 rounded-xl focus:outline-none focus:border-[#73d200]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleApplyCoupon()}
+                    disabled={couponLoading || !couponInput.trim()}
+                    className="px-4 py-2 bg-[#73d200] hover:bg-[#65b800] disabled:opacity-50 text-gray-950 font-black text-xs rounded-xl transition-all cursor-pointer"
+                  >
+                    {couponLoading ? 'Applying...' : 'Apply'}
+                  </button>
+                </div>
+
+                {/* Available Coupons List */}
+                {availableCoupons.length > 0 && (
+                  <div className="space-y-2 pt-1">
+                    <span className="text-[10px] uppercase font-bold text-gray-400 block tracking-wider">
+                      Applicable Coupons
+                    </span>
+                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                      {availableCoupons.map((c) => (
+                        <div
+                          key={c.id || c.code}
+                          className="p-2.5 rounded-lg border border-dashed border-gray-200 bg-gray-50/70 hover:bg-gray-50 flex items-center justify-between gap-2 text-xs"
+                        >
+                          <div>
+                            <span className="font-mono font-black text-gray-950 px-1.5 py-0.5 rounded bg-white border border-gray-200 text-[11px]">
+                              {c.code}
+                            </span>
+                            <p className="text-[11px] text-gray-600 mt-0.5 leading-tight">
+                              {c.description || `${c.discountValue}% off on minimum ₹${c.minBookingAmount}`}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleApplyCoupon(c.code)}
+                            className="text-[#5b9e00] hover:text-[#4a8200] font-bold text-xs uppercase tracking-wider shrink-0 cursor-pointer"
+                          >
+                            Apply
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </Card>
+
+          {/* Fare Summary Card */}
           <Card padding="p-6" className="space-y-4 shadow-md border border-gray-200">
             <div>
               <Badge variant="operator">
@@ -718,6 +888,16 @@ export default function CheckoutPage() {
                 <span>GST & Service Tax (5%)</span>
                 <span className="font-semibold">₹{fareBreakdown.gstAmount.toFixed(2)}</span>
               </div>
+
+              {fareBreakdown.discount > 0 && (
+                <div className="flex justify-between text-emerald-700 font-bold text-sm pt-1 border-t border-dashed border-emerald-200">
+                  <span className="flex items-center gap-1">
+                    <TagIcon className="w-3.5 h-3.5" />
+                    Coupon Discount ({appliedCoupon?.code})
+                  </span>
+                  <span>-₹{fareBreakdown.discount.toFixed(2)}</span>
+                </div>
+              )}
             </div>
 
             <div className="flex items-baseline justify-between">
@@ -734,7 +914,7 @@ export default function CheckoutPage() {
               loading={submitting}
               icon={LockClosedIcon}
             >
-              Pay ₹{fareBreakdown.totalAmount.toLocaleString('en-IN')} & Confirm
+              Pay ₹{fareBreakdown.totalAmount.toLocaleString('en-IN')} &amp; Confirm
             </Button>
 
             <p className="text-[11px] text-center text-gray-400">

@@ -6,10 +6,13 @@ import {
   ShieldCheckIcon,
   BoltIcon,
   ArrowRightIcon,
+  BanknotesIcon,
+  ChevronRightIcon,
 } from '@heroicons/react/24/solid';
 import { ClockIcon } from '@heroicons/react/24/outline';
 import HeroSearchWidget from '../components/search/HeroSearchWidget';
-import { Badge, Card } from '../components/ui';
+import CouponHeroCard from '../components/coupon/CouponHeroCard';
+import { Card } from '../components/ui';
 import { fetchRoutes } from '../services/trip.service';
 
 const FALLBACK_POPULAR_CORRIDORS = [
@@ -99,30 +102,49 @@ export default function HomePage() {
 
   return (
     <div className="flex-1 flex flex-col">
-      {/* GoBus Hero Banner */}
-      <section className="relative bg-gradient-to-br from-[#131b26] via-gray-900 to-gray-800 text-white pt-14 pb-20 px-4 overflow-hidden">
-        <div
-          aria-hidden="true"
-          className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-[#73d200]/10 blur-3xl pointer-events-none"
-        />
-        <div className="max-w-6xl mx-auto relative z-10">
-          <div className="flex flex-wrap items-center gap-2 mb-4">
-            <Badge variant="operator">Express Intercity Fleet</Badge>
-            <span className="text-xs font-semibold text-gray-300">
-              35+ Indian Corridors • 45+ Luxury AC & Sleeper Coaches
-            </span>
+      {/* GoBus Hero Banner with Scenic Bus Background & Floating Coupon Offer */}
+      <section
+        className="relative bg-cover bg-center text-white pt-8 pb-14 px-4 overflow-hidden min-h-[440px] md:min-h-[500px] flex items-center"
+        style={{
+          backgroundImage: `url('/dashboardimage.png')`,
+          backgroundPosition: 'center 40%',
+        }}
+      >
+        {/* Subtle cinematic dark gradient overlay ensuring high contrast for text & inputs */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/25 to-black/60 pointer-events-none" />
+
+        <div className="max-w-6xl mx-auto w-full relative z-10 flex flex-col justify-between pt-2">
+          {/* Top Row: Floating Coupon Card positioned top right (matches reference image) */}
+          <div className="flex justify-end mb-6 md:mb-10">
+            <CouponHeroCard />
           </div>
 
-          <h1 className="text-3xl sm:text-5xl font-black mb-4 tracking-tight leading-tight max-w-3xl">
-            Low-cost intercity bus travel across India.
-          </h1>
-          <p className="text-gray-300 text-base md:text-lg mb-8 max-w-2xl">
-            Book verified AC Sleepers and Executive Seaters with live seat concurrency, transparent ₹ INR pricing, and instant e-tickets.
-          </p>
+          {/* Hero Heading */}
+          <div className="mb-4 md:mb-5">
+            <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white drop-shadow-md">
+              Book bus tickets online
+            </h1>
+          </div>
 
+          {/* Prominent Search Widget Floating Card */}
           <HeroSearchWidget cities={cities} />
         </div>
       </section>
+
+      {/* GST 5% Info Banner underneath Search (matches reference image) */}
+      <div className="max-w-6xl mx-auto px-4 -mt-4 relative z-20 w-full mb-4">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-3.5 sm:p-4 flex items-center justify-between gap-3 hover:border-gray-300 transition-colors cursor-pointer group">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-[#73d200]/20 flex items-center justify-center text-[#559a00] shrink-0">
+              <BanknotesIcon className="w-5 h-5" />
+            </div>
+            <span className="font-bold text-gray-800 text-xs sm:text-sm md:text-base">
+              Enjoy lower fares with GST now reduced to 5% on all app and web bookings.
+            </span>
+          </div>
+          <ChevronRightIcon className="w-5 h-5 text-gray-400 group-hover:text-gray-700 transition-colors shrink-0" />
+        </div>
+      </div>
 
       {/* Popular Indian Intercity Corridors */}
       <section className="max-w-6xl mx-auto px-4 py-12 w-full">

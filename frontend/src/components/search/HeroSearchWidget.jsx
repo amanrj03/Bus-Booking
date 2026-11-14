@@ -3,13 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import {
   MapPinIcon,
   CalendarDaysIcon,
-  MagnifyingGlassIcon,
-  UserGroupIcon,
-  PlusIcon,
-  MinusIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  UserIcon,
 } from '@heroicons/react/24/solid';
 import { ArrowsRightLeftIcon } from '@heroicons/react/24/outline';
-import { Button, Card, Alert } from '../ui';
+import { Alert } from '../ui';
 
 const DEFAULT_INDIAN_CITIES = [
   'Delhi',
@@ -24,6 +23,7 @@ const DEFAULT_INDIAN_CITIES = [
   'Udaipur',
   'Ahmedabad',
   'Goa',
+  'Phagwara',
   'Agra',
   'Lucknow',
   'Jodhpur',
@@ -48,8 +48,8 @@ export default function HeroSearchWidget({
 }) {
   const navigate = useNavigate();
   const todayStr = getLocalDateString(0);
-  const tomorrowStr = getLocalDateString(1);
 
+  const [tripType, setTripType] = useState('ONE_WAY');
   const [fromCity, setFromCity] = useState(initialFrom);
   const [toCity, setToCity] = useState(initialTo);
   const [travelDate, setTravelDate] = useState(initialDate);
@@ -66,8 +66,44 @@ export default function HeroSearchWidget({
     setValidationError('');
   };
 
-  const handlePassengersChange = (delta) => {
-    setPassengers((prev) => Math.min(6, Math.max(1, prev + delta)));
+  const handleStepDay = (days) => {
+    try {
+      const parts = travelDate.split('-');
+      const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      d.setDate(d.getDate() + days);
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (d < today) return; // Do not go into the past
+
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      setTravelDate(`${y}-${m}-${day}`);
+    } catch {
+      // fallback
+    }
+  };
+
+  const formatDisplayDate = (dateStr) => {
+    try {
+      if (dateStr === todayStr) {
+        const parts = dateStr.split('-');
+        const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+        const dayNum = d.getDate();
+        const monthShort = d.toLocaleString('en-US', { month: 'short' });
+        return `Today, ${dayNum} ${monthShort}`;
+      }
+      const parts = dateStr.split('-');
+      const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      const weekdayShort = d.toLocaleString('en-US', { weekday: 'short' });
+      const dayNum = d.getDate();
+      const monthShort = d.toLocaleString('en-US', { month: 'short' });
+      return `${weekdayShort}, ${dayNum} ${monthShort}`;
+    } catch {
+      return dateStr;
+    }
   };
 
   const handleSubmit = (e) => {
@@ -109,43 +145,32 @@ export default function HeroSearchWidget({
   };
 
   return (
-    <Card padding="p-5 md:p-6" className="text-gray-800 w-full shadow-2xl border-0">
+    <div className="bg-white text-gray-900 rounded-2xl shadow-xl p-5 md:p-6 w-full border border-gray-100">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-gray-100">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-[#73d200]/20 text-gray-900">
-              One-Way Intercity Coach
-            </span>
-            <span className="text-xs text-gray-500 hidden sm:inline">
-              Zero convenience fee on direct UPI bookings
-            </span>
-          </div>
-
-          <div className="flex items-center gap-1.5 text-xs">
-            <span className="text-gray-400 font-semibold mr-1">Quick Date:</span>
-            <button
-              type="button"
-              onClick={() => setTravelDate(todayStr)}
-              className={`px-2.5 py-1 rounded-md font-bold transition-colors cursor-pointer ${
-                travelDate === todayStr
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Today
-            </button>
-            <button
-              type="button"
-              onClick={() => setTravelDate(tomorrowStr)}
-              className={`px-2.5 py-1 rounded-md font-bold transition-colors cursor-pointer ${
-                travelDate === tomorrowStr
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Tomorrow
-            </button>
-          </div>
+        {/* Radio Tabs: One Way vs Round Trip */}
+        <div className="flex items-center gap-6 text-sm font-semibold text-gray-800">
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="radio"
+              name="tripType"
+              value="ONE_WAY"
+              checked={tripType === 'ONE_WAY'}
+              onChange={() => setTripType('ONE_WAY')}
+              className="w-4 h-4 text-gray-900 accent-gray-900 focus:ring-0 cursor-pointer"
+            />
+            <span>One Way</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer select-none text-gray-600 hover:text-gray-900">
+            <input
+              type="radio"
+              name="tripType"
+              value="ROUND_TRIP"
+              checked={tripType === 'ROUND_TRIP'}
+              onChange={() => setTripType('ROUND_TRIP')}
+              className="w-4 h-4 text-gray-900 accent-gray-900 focus:ring-0 cursor-pointer"
+            />
+            <span>Round Trip</span>
+          </label>
         </div>
 
         {validationError && (
@@ -160,38 +185,40 @@ export default function HeroSearchWidget({
           ))}
         </datalist>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-stretch">
-          {/* Origin + Swap + Destination */}
-          <div className="lg:col-span-6 flex flex-col sm:flex-row items-center gap-2 relative">
-            <div className="w-full flex-1 border border-gray-300 rounded-xl px-3.5 py-2.5 bg-gray-50 focus-within:bg-white focus-within:border-[#73d200] transition-colors flex items-center gap-2.5">
-              <MapPinIcon className="w-5 h-5 text-[#65b800] shrink-0" />
-              <div className="flex-1 min-w-0">
-                <label
-                  htmlFor="hero-from-city"
-                  className="text-[10px] uppercase font-bold tracking-wider text-gray-400 block"
-                >
-                  From
-                </label>
-                <input
-                  id="hero-from-city"
-                  list="indian-bus-cities"
-                  value={fromCity}
-                  onChange={(e) => {
-                    setFromCity(e.target.value);
-                    setValidationError('');
-                  }}
-                  placeholder="Enter origin city"
-                  className="w-full bg-transparent font-bold text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
-                />
-              </div>
+        {/* Input Fields Row */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+          {/* From City */}
+          <div className="md:col-span-3 border border-gray-300 rounded-xl px-3.5 py-2.5 bg-white hover:border-gray-400 focus-within:border-[#73d200] transition-colors flex items-center gap-2.5">
+            <MapPinIcon className="w-5 h-5 text-gray-400 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <label
+                htmlFor="hero-from-city"
+                className="text-[10px] uppercase font-bold tracking-wider text-gray-400 block"
+              >
+                From
+              </label>
+              <input
+                id="hero-from-city"
+                list="indian-bus-cities"
+                value={fromCity}
+                onChange={(e) => {
+                  setFromCity(e.target.value);
+                  setValidationError('');
+                }}
+                placeholder="Origin city"
+                className="w-full bg-transparent font-bold text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
+              />
             </div>
+          </div>
 
+          {/* Swap Button */}
+          <div className="flex justify-center -my-2 md:my-0 md:-mx-3 z-10 md:col-span-1">
             <button
               type="button"
               onClick={handleSwapCities}
               aria-label="Swap origin and destination"
               title="Swap origin and destination"
-              className="w-10 h-10 shrink-0 rounded-full bg-white border border-gray-300 hover:border-[#73d200] hover:bg-[#73d200]/10 text-gray-700 flex items-center justify-center shadow-sm transition-all cursor-pointer z-10 sm:-mx-4"
+              className="w-9 h-9 rounded-full bg-white border border-gray-300 hover:border-[#73d200] hover:bg-[#73d200]/10 text-gray-700 flex items-center justify-center shadow-sm transition-all cursor-pointer"
             >
               <ArrowsRightLeftIcon
                 className={`w-4 h-4 transition-transform duration-300 ${
@@ -199,102 +226,118 @@ export default function HeroSearchWidget({
                 }`}
               />
             </button>
-
-            <div className="w-full flex-1 border border-gray-300 rounded-xl px-3.5 py-2.5 bg-gray-50 focus-within:bg-white focus-within:border-[#73d200] transition-colors flex items-center gap-2.5">
-              <MapPinIcon className="w-5 h-5 text-gray-700 shrink-0" />
-              <div className="flex-1 min-w-0">
-                <label
-                  htmlFor="hero-to-city"
-                  className="text-[10px] uppercase font-bold tracking-wider text-gray-400 block"
-                >
-                  To
-                </label>
-                <input
-                  id="hero-to-city"
-                  list="indian-bus-cities"
-                  value={toCity}
-                  onChange={(e) => {
-                    setToCity(e.target.value);
-                    setValidationError('');
-                  }}
-                  placeholder="Enter destination city"
-                  className="w-full bg-transparent font-bold text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
-                />
-              </div>
-            </div>
           </div>
 
-          {/* Journey Date */}
-          <div className="lg:col-span-2 border border-gray-300 rounded-xl px-3.5 py-2.5 bg-gray-50 focus-within:bg-white focus-within:border-[#73d200] transition-colors flex items-center gap-2.5">
-            <CalendarDaysIcon className="w-5 h-5 text-gray-500 shrink-0" />
+          {/* To City */}
+          <div className="md:col-span-3 border border-gray-300 rounded-xl px-3.5 py-2.5 bg-white hover:border-gray-400 focus-within:border-[#73d200] transition-colors flex items-center gap-2.5">
+            <MapPinIcon className="w-5 h-5 text-gray-400 shrink-0" />
             <div className="flex-1 min-w-0">
               <label
-                htmlFor="hero-travel-date"
+                htmlFor="hero-to-city"
                 className="text-[10px] uppercase font-bold tracking-wider text-gray-400 block"
               >
-                Departure
+                To
               </label>
               <input
-                id="hero-travel-date"
-                type="date"
-                min={todayStr}
-                value={travelDate}
-                onChange={(e) => setTravelDate(e.target.value)}
-                className="w-full bg-transparent font-bold text-sm text-gray-900 focus:outline-none"
+                id="hero-to-city"
+                list="indian-bus-cities"
+                value={toCity}
+                onChange={(e) => {
+                  setToCity(e.target.value);
+                  setValidationError('');
+                }}
+                placeholder="Destination city"
+                className="w-full bg-transparent font-bold text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
               />
             </div>
           </div>
 
-          {/* Passengers Counter */}
-          <div className="lg:col-span-2 border border-gray-300 rounded-xl px-3.5 py-2.5 bg-gray-50 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <UserGroupIcon className="w-5 h-5 text-gray-500 shrink-0" />
-              <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-gray-400 block">
-                  Passengers
-                </span>
-                <span className="font-bold text-sm text-gray-900">
-                  {passengers} {passengers === 1 ? 'Seat' : 'Seats'}
-                </span>
+          {/* Departure Date with < > Step Buttons */}
+          <div className="md:col-span-3 border border-gray-300 rounded-xl px-3 py-2 bg-white hover:border-gray-400 focus-within:border-[#73d200] transition-colors flex items-center justify-between gap-1.5">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <CalendarDaysIcon className="w-5 h-5 text-gray-400 shrink-0" />
+              <div className="min-w-0 flex-1">
+                <label
+                  htmlFor="hero-travel-date"
+                  className="text-[10px] uppercase font-bold tracking-wider text-gray-400 block"
+                >
+                  Departure
+                </label>
+                <div className="relative">
+                  <span className="font-bold text-sm text-gray-900 block truncate cursor-pointer pointer-events-none">
+                    {formatDisplayDate(travelDate)}
+                  </span>
+                  <input
+                    id="hero-travel-date"
+                    type="date"
+                    min={todayStr}
+                    value={travelDate}
+                    onChange={(e) => setTravelDate(e.target.value)}
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full"
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-1">
+            {/* < > arrows for easy day switching */}
+            <div className="flex items-center gap-0.5 shrink-0">
               <button
                 type="button"
-                aria-label="Decrease passengers"
-                disabled={passengers <= 1}
-                onClick={() => handlePassengersChange(-1)}
-                className="w-7 h-7 rounded-md bg-white border border-gray-200 hover:border-gray-400 disabled:opacity-40 flex items-center justify-center text-gray-700 cursor-pointer"
+                onClick={() => handleStepDay(-1)}
+                disabled={travelDate <= todayStr}
+                aria-label="Previous day"
+                className="p-1 rounded hover:bg-gray-100 disabled:opacity-30 text-gray-600 transition-colors cursor-pointer"
               >
-                <MinusIcon className="w-3.5 h-3.5" />
+                <ChevronLeftIcon className="w-3.5 h-3.5" />
               </button>
               <button
                 type="button"
-                aria-label="Increase passengers"
-                disabled={passengers >= 6}
-                onClick={() => handlePassengersChange(1)}
-                className="w-7 h-7 rounded-md bg-white border border-gray-200 hover:border-gray-400 disabled:opacity-40 flex items-center justify-center text-gray-700 cursor-pointer"
+                onClick={() => handleStepDay(1)}
+                aria-label="Next day"
+                className="p-1 rounded hover:bg-gray-100 text-gray-600 transition-colors cursor-pointer"
               >
-                <PlusIcon className="w-3.5 h-3.5" />
+                <ChevronRightIcon className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
 
-          {/* Submit CTA */}
-          <div className="lg:col-span-2 flex">
-            <Button
-              type="submit"
-              size="lg"
-              fullWidth
-              icon={MagnifyingGlassIcon}
-              className="rounded-xl text-base py-3.5"
-            >
-              Search
-            </Button>
+          {/* Passengers Selector */}
+          <div className="md:col-span-2 border border-gray-300 rounded-xl px-3 py-2.5 bg-white hover:border-gray-400 focus-within:border-[#73d200] transition-colors flex items-center gap-2">
+            <UserIcon className="w-5 h-5 text-gray-400 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <label
+                htmlFor="hero-passengers"
+                className="text-[10px] uppercase font-bold tracking-wider text-gray-400 block"
+              >
+                Passengers
+              </label>
+              <select
+                id="hero-passengers"
+                value={passengers}
+                onChange={(e) => setPassengers(Number(e.target.value))}
+                className="w-full bg-transparent font-bold text-sm text-gray-900 focus:outline-none cursor-pointer"
+              >
+                <option value={1}>1 Adult</option>
+                <option value={2}>2 Adults</option>
+                <option value={3}>3 Adults</option>
+                <option value={4}>4 Adults</option>
+                <option value={5}>5 Adults</option>
+                <option value={6}>6 Adults</option>
+              </select>
+            </div>
           </div>
         </div>
+
+        {/* Search CTA Button - Full width row or inline */}
+        <div className="flex justify-end pt-1">
+          <button
+            type="submit"
+            className="w-full md:w-auto md:min-w-[180px] bg-[#73d200] hover:bg-[#65b800] text-gray-950 font-black text-base py-3 px-8 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+          >
+            <span>Search</span>
+          </button>
+        </div>
       </form>
-    </Card>
+    </div>
   );
 }

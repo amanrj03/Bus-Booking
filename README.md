@@ -6,7 +6,7 @@
 [![React](https://img.shields.io/badge/React-19.x-61dafb?style=flat&logo=react&logoColor=black)](https://react.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.x-38b2ac?style=flat&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![OpenAPI 3.0](https://img.shields.io/badge/OpenAPI-3.0.3-85ea2d?style=flat&logo=swagger&logoColor=black)](http://localhost:5000/api-docs)
-[![Tests Passing](https://img.shields.io/badge/Tests-148%20Passing%20(124%20BE%20%2B%2024%20FE)-brightgreen?style=flat)](https://github.com/amanrj03/Bus-Booking)
+[![Tests Passing](https://img.shields.io/badge/Tests-157%20Passing%20(130%20BE%20%2B%2027%20FE)-brightgreen?style=flat)](https://github.com/amanrj03/Bus-Booking)
 
 A production-grade, enterprise-scale **Bus Booking Management System** engineered as a high-performance intercity coach reservation, fleet management, and real-time inventory operations platform.
 
@@ -319,17 +319,17 @@ $$\text{Occupancy Rate (\%)} = \left( \frac{N_{\text{booked seats}}}{N_{\text{to
 
 ## 9. Automated Test Suite & Benchmarks
 
-The GoBus platform is protected by a 148-test automated test suite across backend and frontend stacks:
+The GoBus platform is protected by a 157-test automated test suite across backend and frontend stacks:
 
 ```bash
-# Run all Backend Tests (124 tests, 47 suites)
+# Run all Backend Tests (130 tests, 48 suites)
 cd backend
 npm test
 
 # Run Concurrency Race-Condition Test specifically
 node --test src/tests/concurrency.race.test.js
 
-# Run Frontend Tests (24 tests, 6 suites)
+# Run Frontend Tests (27 tests, 7 suites)
 cd frontend
 npm test
 
@@ -342,10 +342,12 @@ npm run build
 | Scope | Test File | Tests | Key Scenarios Covered |
 |---|---|---|---|
 | **Backend** | `concurrency.race.test.js` | Stress | Simultaneous parallel requests for identical seat; verifies zero double-booking and proper 409 responses. |
+| **Backend** | `coupon.test.js` | 6 | Percentage/fixed discount computation, maxDiscount cap, minBookingAmount rules, admin RBAC CRUD & toggle. |
 | **Backend** | `cancellation.test.js`, `cancellation.lifecycle.test.js` | 14 | Tiered refund percentages ($100\%, 50\%, 0\%$), seat re-stocking to `AVAILABLE`. |
-| **Backend** | `booking.test.js`, `booking.service.test.js` | 22 | PNR generation, payment simulation, 10-minute hold expiration sweep. |
+| **Backend** | `booking.test.js`, `booking.service.test.js` | 22 | PNR generation, payment simulation, 10-minute hold expiration sweep, atomic coupon redemption. |
 | **Backend** | `auth.test.js`, `audit.test.js` | 14 | JWT issuance, password hashing, role-based route guard enforcement (401/403). |
 | **Backend** | `report.test.js`, `swagger.test.js` | 18 | Passenger manifest generation, occupancy formula, OpenAPI schema validity. |
+| **Frontend** | `coupon.test.jsx` | 3 | Promotional hero card rendering, copy code action, session dismiss persistence. |
 | **Frontend** | `seatLayout.test.jsx` | 7 | Interactive 2-deck seat selection, steering wheel indicator, price calculation. |
 | **Frontend** | `ticketConfirmation.test.jsx` | 6 | E-ticket rendering, dynamic QR code generation, browser print trigger. |
 | **Frontend** | `myBookings.test.jsx` | 4 | Passenger booking history list, cancellation modal flow. |
@@ -359,14 +361,15 @@ npm run build
 | Capability Domain | Architecture Requirement | GoBus Implementation | Source References |
 |---|---|---|---|
 | **System Architecture** | Clean separation of concerns, decoupled frontend/backend | Modular Node.js/Express REST API and Vite + React 19 SPA monorepo. | `backend/src/`, `frontend/src/` |
-| **Relational Database** | Normalized schema, foreign keys, cascade rules, indexing | 15 Prisma models with composite unique keys, OnDelete constraints, and hot-path indexes. | [docs/ER_DIAGRAM.md](docs/ER_DIAGRAM.md), `backend/prisma/schema.prisma` |
+| **Relational Database** | Normalized schema, foreign keys, cascade rules, indexing | 17 Prisma models with composite unique keys, OnDelete constraints, and hot-path indexes. | [docs/ER_DIAGRAM.md](docs/ER_DIAGRAM.md), `backend/prisma/schema.prisma` |
 | **Concurrency Control** | Double-booking prevention during concurrent checkout | PostgreSQL `SELECT ... FOR UPDATE` row locks inside atomic Prisma transactions. | `backend/src/services/trip.service.js`, `backend/src/services/booking.service.js` |
 | **Seat Hold Lifecycle** | Temporary hold expiration mechanism | 10-minute hold timer with timestamp deadline (`lockedUntil`) and lazy-sweep re-release. | `backend/src/services/booking.service.js`, `frontend/src/pages/CheckoutPage.jsx` |
+| **Promotional Coupon Engine** | Server-side validation, discount computation, admin CRUD | Percentage/Fixed coupons with usage caps, per-user limits, and checkout integration. | `backend/src/services/coupon.service.js`, `frontend/src/components/coupon/` |
 | **Cancellation Rules** | Tiered refund calculation and seat re-availability | 3-tiered cancellation policy ($100\%, 50\%, 0\%$) with atomic seat status reset to `AVAILABLE`. | `backend/src/services/cancellation.service.js`, `frontend/src/components/booking/CancellationModal.jsx` |
 | **Reporting & Manifests**| Conductor passenger manifests, occupancy %, revenue | Dedicated report service generating passenger rosters, occupancy formulas, and Recharts charts. | `backend/src/services/report.service.js`, `frontend/src/pages/AdminDashboardPage.jsx` |
 | **Security & RBAC** | Stateless JWT authentication, role authorization, audit logs | JWT middleware with `ADMIN`, `OPERATOR`, `PASSENGER` role guards and append-only audit trail. | `backend/src/middleware/auth.middleware.js`, `backend/src/services/audit.service.js` |
 | **API Documentation** | Complete API specification for all endpoints | OpenAPI 3.0.3 specification accessible via Swagger UI at `/api-docs`. | `backend/src/docs/swagger.js`, `backend/src/docs/openapi.json` |
-| **Automated Testing** | Unit, integration, and concurrency race tests | 148 automated tests (124 backend, 24 frontend) passing with zero failures. | `backend/src/tests/`, `frontend/src/tests/` |
+| **Automated Testing** | Unit, integration, and concurrency race tests | 157 automated tests (130 backend, 27 frontend) passing with zero failures. | `backend/src/tests/`, `frontend/src/tests/` |
 
 ---
 

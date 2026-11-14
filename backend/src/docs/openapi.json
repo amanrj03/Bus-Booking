@@ -26,7 +26,8 @@
     { "name": "Booking & Checkout", "description": "Transactional booking with row-level locks, simulated payment rails, and PNR emission" },
     { "name": "Cancellations & Refunds", "description": "Tiered cancellation deductions, instant simulated refunds, and atomic seat release" },
     { "name": "Reports & Analytics", "description": "Conductor passenger manifests, seat occupancy %, and revenue trend reports" },
-    { "name": "Audit Logs", "description": "Immutable centralized audit trail for system operations" }
+    { "name": "Audit Logs", "description": "Immutable centralized audit trail for system operations" },
+    { "name": "Promotional Coupons", "description": "Customer discount codes, active coupon lists, and server-side coupon validation" }
   ],
   "components": {
     "securitySchemes": {
@@ -595,6 +596,41 @@
         ],
         "responses": {
           "200": { "description": "Paginated audit trail" }
+        }
+      }
+    },
+    "/coupons/active": {
+      "get": {
+        "tags": ["Promotional Coupons"],
+        "summary": "List active and unexpired promotional coupons",
+        "responses": {
+          "200": { "description": "Active promotional coupons retrieved successfully" }
+        }
+      }
+    },
+    "/coupons/validate": {
+      "post": {
+        "tags": ["Promotional Coupons"],
+        "summary": "Validate a promotional coupon code against booking subtotal",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["code", "bookingAmount"],
+                "properties": {
+                  "code": { "type": "string", "example": "HOPON9" },
+                  "bookingAmount": { "type": "number", "example": 1200 },
+                  "userEmail": { "type": "string", "example": "user@example.com" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Coupon validation result with discount computation" },
+          "400": { "description": "Invalid, expired, or inapplicable coupon" }
         }
       }
     }

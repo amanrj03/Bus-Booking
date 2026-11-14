@@ -132,12 +132,74 @@ async function createTransactionalBooking(payload, actorUserId, ipAddress) {
     const fareSummary = calculateBookingFareSummary(lockedSeats, payload.addons);
     const pnr = await allocateUniquePnr(tx, trip.route?.sourceCity);
 
+    // Atomic Coupon Evaluation & Discount Computation
+    let couponDiscount = 0;
+    let appliedCoupon = null;
+
+    if (payload.couponCode && typeof payload.couponCode === 'string') {
+      const code = payload.couponCode.trim().toUpperCase();
+      const coupon = await tx.coupon.findUnique({ where: { code } });
+
+      if (!coupon) {
+        throw new AppError(`Coupon '${code}' is invalid or does not exist.`, 404);
+      }
+      if (!coupon.isActive) {
+        throw new AppError(`Coupon '${code}' is currently inactive.`, 400);
+      }
+      if (now < new Date(coupon.startDate) || now > new Date(coupon.expiryDate)) {
+        throw new AppError(`Coupon '${code}' has expired or is not active yet.`, 400);
+      }
+      if (fareSummary.totalAmount < Number(coupon.minBookingAmount)) {
+        throw new AppError(
+          `Minimum booking amount of ₹${Number(coupon.minBookingAmount)} required for coupon '${code}'.`,
+          400
+        );
+      }
+      if (coupon.usageLimit !== null && coupon.usedCount >= coupon.usageLimit) {
+        throw new AppError(`Coupon '${code}' total usage limit has been reached.`, 400);
+      }
+
+      // Check per-user redemption limit
+      if (actorUserId || payload.contactEmail) {
+        const userRedemptions = await tx.couponRedemption.count({
+          where: {
+            couponId: coupon.id,
+            OR: [
+              ...(actorUserId ? [{ userId: actorUserId }] : []),
+              ...(payload.contactEmail ? [{ userEmail: payload.contactEmail.toLowerCase() }] : []),
+            ],
+          },
+        });
+        if (userRedemptions >= coupon.perUserLimit) {
+          throw new AppError(
+            `You have already reached the redemption limit (${coupon.perUserLimit}) for coupon '${code}'.`,
+            400
+          );
+        }
+      }
+
+      if (coupon.discountType === 'PERCENTAGE') {
+        couponDiscount = Math.round((fareSummary.totalAmount * Number(coupon.discountValue)) / 100);
+        if (coupon.maxDiscount !== null && coupon.maxDiscount !== undefined) {
+          couponDiscount = Math.min(couponDiscount, Number(coupon.maxDiscount));
+        }
+      } else {
+        couponDiscount = Math.min(Number(coupon.discountValue), fareSummary.totalAmount);
+      }
+
+      appliedCoupon = coupon;
+    }
+
+    const finalPayableAmount = Math.max(0, fareSummary.totalAmount - couponDiscount);
+
     const booking = await tx.booking.create({
       data: {
         pnr,
         userId: actorUserId || null,
         tripId: payload.tripId,
-        totalAmount: fareSummary.totalAmount,
+        totalAmount: finalPayableAmount,
+        discountAmount: couponDiscount,
+        couponId: appliedCoupon ? appliedCoupon.id : null,
         status: 'CONFIRMED',
         contactEmail: payload.contactEmail,
         contactPhone: payload.contactPhone,
@@ -167,12 +229,30 @@ async function createTransactionalBooking(payload, actorUserId, ipAddress) {
     const payment = await tx.payment.create({
       data: {
         bookingId: booking.id,
-        amount: fareSummary.totalAmount,
+        amount: finalPayableAmount,
         paymentMethod: payload.paymentMethod || 'UPI',
         paymentStatus: 'SUCCESS',
         transactionReference,
       },
     });
+
+    // Record Coupon Redemption & Increment Usage Count
+    if (appliedCoupon) {
+      await tx.coupon.update({
+        where: { id: appliedCoupon.id },
+        data: { usedCount: { increment: 1 } },
+      });
+
+      await tx.couponRedemption.create({
+        data: {
+          couponId: appliedCoupon.id,
+          bookingId: booking.id,
+          userId: actorUserId || null,
+          userEmail: payload.contactEmail ? payload.contactEmail.toLowerCase() : null,
+          discountAmount: couponDiscount,
+        },
+      });
+    }
 
     // Map each passenger to their TripSeat record and persist BookingSeat audit records
     const seatMapByNumber = new Map(lockedSeats.map((s) => [s.seatNumber, s]));
@@ -222,7 +302,10 @@ async function createTransactionalBooking(payload, actorUserId, ipAddress) {
         pnr: booking.pnr,
         tripId: booking.tripId,
         seatNumbers: requestedSeatNumbers,
-        totalAmount: fareSummary.totalAmount,
+        totalAmount: finalPayableAmount,
+        originalAmount: fareSummary.totalAmount,
+        couponCode: appliedCoupon ? appliedCoupon.code : null,
+        discountAmount: couponDiscount,
         transactionReference,
         paymentMethod: payload.paymentMethod || 'UPI',
       },
@@ -234,6 +317,14 @@ async function createTransactionalBooking(payload, actorUserId, ipAddress) {
       booking: {
         ...booking,
         totalAmount: Number(booking.totalAmount),
+        discountAmount: Number(booking.discountAmount || 0),
+        coupon: appliedCoupon
+          ? {
+              code: appliedCoupon.code,
+              description: appliedCoupon.description,
+              discountAmount: couponDiscount,
+            }
+          : null,
       },
       passengers,
       bookingSeats: bookingSeats.map((bs) => ({
@@ -244,7 +335,11 @@ async function createTransactionalBooking(payload, actorUserId, ipAddress) {
         ...payment,
         amount: Number(payment.amount),
       },
-      fareSummary,
+      fareSummary: {
+        ...fareSummary,
+        couponDiscount,
+        finalPayableAmount,
+      },
     };
   });
 }

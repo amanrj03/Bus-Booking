@@ -34,6 +34,8 @@ async function main() {
   // 1. Clean existing records in reverse dependency order
   console.log('[Seed] Cleaning existing data...');
   await prisma.auditLog.deleteMany();
+  await prisma.couponRedemption.deleteMany();
+  await prisma.coupon.deleteMany();
   await prisma.cancellation.deleteMany();
   await prisma.payment.deleteMany();
   await prisma.bookingSeat.deleteMany();
@@ -751,6 +753,75 @@ async function main() {
 
   for (const chunk of chunkArray(auditLogsData, 500)) {
     await prisma.auditLog.createMany({ data: chunk });
+  }
+
+  // 13. Seed Promotional Coupons
+  console.log('[Seed] Seeding promotional coupons...');
+  const couponsData = [
+    {
+      code: 'HOPON9',
+      description: 'Flat 15% off your festive travels',
+      discountType: 'PERCENTAGE',
+      discountValue: 15,
+      maxDiscount: 200,
+      minBookingAmount: 499,
+      usageLimit: 5000,
+      perUserLimit: 2,
+      usedCount: 42,
+      startDate: new Date('2026-01-01'),
+      expiryDate: new Date('2026-11-30T23:59:59'),
+      isActive: true,
+    },
+    {
+      code: 'GOBUS50',
+      description: 'Flat ₹50 instant discount on all intercity bus routes',
+      discountType: 'FIXED',
+      discountValue: 50,
+      maxDiscount: null,
+      minBookingAmount: 299,
+      usageLimit: 2000,
+      perUserLimit: 3,
+      usedCount: 88,
+      startDate: new Date('2026-01-01'),
+      expiryDate: new Date('2026-12-31T23:59:59'),
+      isActive: true,
+    },
+    {
+      code: 'FESTIVE20',
+      description: 'Festive Season 20% savings on AC Sleeper and Luxury routes',
+      discountType: 'PERCENTAGE',
+      discountValue: 20,
+      maxDiscount: 250,
+      minBookingAmount: 699,
+      usageLimit: 1500,
+      perUserLimit: 1,
+      usedCount: 19,
+      startDate: new Date('2026-01-01'),
+      expiryDate: new Date('2026-12-31T23:59:59'),
+      isActive: true,
+    },
+    {
+      code: 'FIRSTBUS',
+      description: 'Welcome bonus: Flat ₹100 off on your first bus booking',
+      discountType: 'FIXED',
+      discountValue: 100,
+      maxDiscount: null,
+      minBookingAmount: 500,
+      usageLimit: 10000,
+      perUserLimit: 1,
+      usedCount: 120,
+      startDate: new Date('2026-01-01'),
+      expiryDate: new Date('2026-12-31T23:59:59'),
+      isActive: true,
+    },
+  ];
+
+  for (const c of couponsData) {
+    await prisma.coupon.upsert({
+      where: { code: c.code },
+      update: c,
+      create: c,
+    });
   }
 
   const durationSec = ((Date.now() - startTime) / 1000).toFixed(2);
