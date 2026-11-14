@@ -10,18 +10,7 @@ import {
   ShieldCheckIcon,
   ArrowRightOnRectangleIcon,
 } from '@heroicons/react/24/solid';
-
-const SERVICE_MENU_ITEMS = [
-  { label: 'All Services', path: '/services' },
-  { label: 'GoBus Lounge', path: '/services/lounge' },
-  { label: 'On Board', path: '/services/on-board' },
-  { label: 'Manage My Booking', path: '/my-bookings' },
-  { label: 'How to Book', path: '/services/how-to-book' },
-  { label: 'Safety', path: '/services/safety' },
-  { label: 'Luggage Policy', path: '/services/luggage' },
-  { label: 'Sustainability', path: '/services/sustainability' },
-  { label: 'Customer Satisfaction', path: '/services/help' },
-];
+import { SERVICE_ITEMS } from '../../config/servicesConfig';
 
 export default function Navbar({ user = null, onOpenAuth = () => {}, onLogout = () => {} }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -110,9 +99,9 @@ export default function Navbar({ user = null, onOpenAuth = () => {}, onLogout = 
                   <div className="absolute -top-1.5 left-5 w-3 h-3 bg-white rotate-45 border-t border-l border-gray-200" />
 
                   <div className="relative z-10">
-                    {SERVICE_MENU_ITEMS.map((item) => (
+                    {SERVICE_ITEMS.map((item) => (
                       <Link
-                        key={item.label}
+                        key={item.id}
                         to={item.path}
                         onClick={() => setServicesOpen(false)}
                         className="block px-4 py-2 text-[13px] font-semibold text-gray-800 hover:bg-[#73d200]/15 hover:text-black transition-colors"
@@ -241,12 +230,12 @@ export default function Navbar({ user = null, onOpenAuth = () => {}, onLogout = 
           {/* Services Group */}
           <div className="border-b border-gray-100 pb-2">
             <span className="block text-xs uppercase font-extrabold text-gray-400 py-1">
-              Services
+              Services & Information
             </span>
             <div className="grid grid-cols-2 gap-1.5 pt-1">
-              {SERVICE_MENU_ITEMS.map((item) => (
+              {SERVICE_ITEMS.map((item) => (
                 <Link
-                  key={item.label}
+                  key={item.id}
                   to={item.path}
                   onClick={() => setMobileMenuOpen(false)}
                   className="text-xs font-semibold text-gray-700 hover:text-[#529600] py-1"

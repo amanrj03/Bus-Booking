@@ -27,7 +27,7 @@ describe('Navbar and Services Suite', () => {
       expect(searchBusesLink).toBeNull();
     });
 
-    it('renders Service dropdown with menu items when clicked', () => {
+    it('renders Service dropdown with exact matching menu items when clicked', () => {
       render(
         <MemoryRouter>
           <Navbar />
@@ -43,12 +43,18 @@ describe('Navbar and Services Suite', () => {
       // Click service button to open dropdown
       fireEvent.click(serviceBtn);
 
-      // Verify dropdown menu options appear
+      // Verify dropdown menu options appear matching SERVICE_ITEMS
       expect(screen.getByText('All Services')).toBeTruthy();
+      expect(screen.getByText('App')).toBeTruthy();
+      expect(screen.getByText('Book tickets your way')).toBeTruthy();
       expect(screen.getByText('GoBus Lounge')).toBeTruthy();
-      expect(screen.getByText('Luggage Policy')).toBeTruthy();
-      expect(screen.getByText('How to Book')).toBeTruthy();
+      expect(screen.getByText('Luggage')).toBeTruthy();
+      expect(screen.getByText('Manage My Booking')).toBeTruthy();
+      expect(screen.getByText('On board')).toBeTruthy();
+      expect(screen.getByText('Travel Guidelines')).toBeTruthy();
+      expect(screen.getByText('Seat Reservations')).toBeTruthy();
       expect(screen.getByText('Safety')).toBeTruthy();
+      expect(screen.getByText('Sustainability')).toBeTruthy();
       expect(screen.getByText('Customer Satisfaction')).toBeTruthy();
     });
 
@@ -66,7 +72,26 @@ describe('Navbar and Services Suite', () => {
   });
 
   describe('ServicesPage Component', () => {
-    it('renders Book tickets your way section by default', () => {
+    it('renders All Services Overview when on /services without section param', () => {
+      render(
+        <MemoryRouter initialEntries={['/services']}>
+          <Routes>
+            <Route path="/services" element={<ServicesPage />} />
+            <Route path="/services/:section" element={<ServicesPage />} />
+          </Routes>
+        </MemoryRouter>
+      );
+
+      // Should open All Services overview, NOT Book tickets your way as main page
+      expect(
+        screen.getByRole('heading', { level: 1, name: /All Services & Passenger Amenities/i })
+      ).toBeTruthy();
+      expect(
+        screen.queryByRole('heading', { level: 1, name: /Book tickets your way/i })
+      ).toBeNull();
+    });
+
+    it('renders Book tickets your way when on /services/how-to-book', () => {
       render(
         <MemoryRouter initialEntries={['/services/how-to-book']}>
           <Routes>
@@ -79,7 +104,23 @@ describe('Navbar and Services Suite', () => {
       expect(screen.getByText(/Choose your trip with just 3 clicks/i)).toBeTruthy();
     });
 
-    it('renders Luggage breakdown with 7 kg and 20 kg allowances', () => {
+    it('renders Manage My Booking guide with CTA and accordions on /services/manage-booking', () => {
+      render(
+        <MemoryRouter initialEntries={['/services/manage-booking']}>
+          <Routes>
+            <Route path="/services/:section" element={<ServicesPage />} />
+          </Routes>
+        </MemoryRouter>
+      );
+
+      expect(screen.getByRole('heading', { name: /Manage My Booking/i })).toBeTruthy();
+      expect(screen.getByRole('link', { name: /Go to Manage My Booking/i })).toBeTruthy();
+      expect(screen.getByText(/Edit Passenger and Contact Details/i)).toBeTruthy();
+      expect(screen.getByText(/Reschedule Trip/i)).toBeTruthy();
+      expect(screen.getByText(/Cancel Booking/i)).toBeTruthy();
+    });
+
+    it('renders Luggage breakdown with 7 kg and 20 kg allowances with dimensions', () => {
       render(
         <MemoryRouter initialEntries={['/services/luggage']}>
           <Routes>
@@ -93,6 +134,8 @@ describe('Navbar and Services Suite', () => {
       expect(screen.getByText('20 kg')).toBeTruthy();
       expect(screen.getByText(/1x Soft Bag or Backpack/i)).toBeTruthy();
       expect(screen.getByText(/1x Checked Bag/i)).toBeTruthy();
+      expect(screen.getByText(/42 cm \(H\)/i)).toBeTruthy();
+      expect(screen.getByText(/80 cm \(H\)/i)).toBeTruthy();
     });
   });
 });
