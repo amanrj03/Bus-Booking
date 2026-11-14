@@ -4,7 +4,7 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import CitySearchInput from '../components/search/CitySearchInput';
 import HeroSearchWidget from '../components/search/HeroSearchWidget';
-import { INDIAN_CITIES_CATALOG, getUnifiedCities } from '../config/citiesConfig';
+import { INDIAN_CITIES_CATALOG } from '../config/citiesConfig';
 
 describe('CitySearchInput & Auto-Suggest Suite', () => {
   afterEach(() => {
@@ -13,12 +13,17 @@ describe('CitySearchInput & Auto-Suggest Suite', () => {
 
   function Wrapper({ initialValue = '', onSelectNext }) {
     const [city, setCity] = useState(initialValue);
+    const [confirmed, setConfirmed] = useState(Boolean(initialValue));
     return (
       <CitySearchInput
         id="test-city"
         label="From"
         value={city}
-        onChange={setCity}
+        isConfirmed={confirmed}
+        onChange={(val, isConf) => {
+          setCity(val);
+          setConfirmed(isConf);
+        }}
         placeholder="Origin city"
         allCities={INDIAN_CITIES_CATALOG}
         onSelectNext={onSelectNext}
@@ -50,22 +55,22 @@ describe('CitySearchInput & Auto-Suggest Suite', () => {
     expect(screen.getByText('Mumbai')).toBeTruthy();
   });
 
-  it('filters cities in real-time when typing "jaip" and selects Jaipur on click', () => {
+  it('filters cities in real-time when typing "patna" and displays Patna with Bihar', () => {
     render(<Wrapper initialValue="" />);
     const input = screen.getByPlaceholderText('Origin city');
 
-    fireEvent.change(input, { target: { value: 'jaip' } });
+    fireEvent.change(input, { target: { value: 'patna' } });
 
-    // Should display matching header and Jaipur with state
+    // Should display Patna with Bihar state tag
     expect(screen.getByText(/Matching Cities/i)).toBeTruthy();
-    expect(screen.getByText('Rajasthan')).toBeTruthy();
+    expect(screen.getByText('Bihar')).toBeTruthy();
 
-    // Click on the suggestion option containing Jaipur
-    const optionBtn = screen.getByText('Rajasthan').closest('button');
+    // Click on the suggestion option containing Patna
+    const optionBtn = screen.getByText('Bihar').closest('button');
     fireEvent.click(optionBtn);
 
-    // Input should now have Jaipur and popover should close
-    expect(input.value).toBe('Jaipur');
+    // Input should now have Patna and popover should close
+    expect(input.value).toBe('Patna');
     expect(screen.queryByText(/Matching Cities/i)).toBeNull();
   });
 
@@ -91,6 +96,30 @@ describe('CitySearchInput & Auto-Suggest Suite', () => {
     // Press Enter to select the top filtered result (Pune)
     fireEvent.keyDown(input, { key: 'Enter' });
     expect(input.value).toBe('Pune');
+  });
+
+  it('blocks search if city was typed without selecting from dropdown', () => {
+    render(
+      <MemoryRouter>
+        <HeroSearchWidget initialFrom="Delhi" initialTo="Jaipur" />
+      </MemoryRouter>
+    );
+
+    const fromInput = screen.getByDisplayValue('Delhi');
+    // Type an incomplete query without selecting from dropdown
+    fireEvent.change(fromInput, { target: { value: 'randomcityxyz' } });
+
+    // Click outside to close popover
+    fireEvent.mouseDown(document.body);
+
+    // Click search
+    const searchBtn = screen.getByRole('button', { name: /search/i });
+    fireEvent.click(searchBtn);
+
+    // Validation alert must appear
+    expect(
+      screen.getByText(/Please select the origin city from the suggestion list/i)
+    ).toBeTruthy();
   });
 
   it('HeroSearchWidget swaps cities correctly and submits valid search payload', () => {

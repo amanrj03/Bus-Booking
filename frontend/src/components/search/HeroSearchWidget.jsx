@@ -33,18 +33,24 @@ export default function HeroSearchWidget({
 
   const [tripType, setTripType] = useState('ONE_WAY');
   const [fromCity, setFromCity] = useState(initialFrom);
+  const [isFromConfirmed, setIsFromConfirmed] = useState(Boolean(initialFrom));
   const [toCity, setToCity] = useState(initialTo);
+  const [isToConfirmed, setIsToConfirmed] = useState(Boolean(initialTo));
   const [travelDate, setTravelDate] = useState(initialDate);
   const [passengers, setPassengers] = useState(initialPassengers);
   const [swapped, setSwapped] = useState(false);
   const [validationError, setValidationError] = useState('');
 
-  // Combine default Indian cities catalog with any dynamic cities from API
+  // Combine comprehensive Indian cities catalog with any dynamic cities from API
   const unifiedCities = useMemo(() => getUnifiedCities(cities), [cities]);
 
   const handleSwapCities = () => {
+    const prevFrom = fromCity;
+    const prevFromConf = isFromConfirmed;
     setFromCity(toCity);
-    setToCity(fromCity);
+    setIsFromConfirmed(isToConfirmed);
+    setToCity(prevFrom);
+    setIsToConfirmed(prevFromConf);
     setSwapped((prev) => !prev);
     setValidationError('');
   };
@@ -96,6 +102,16 @@ export default function HeroSearchWidget({
 
     if (!trimmedFrom || !trimmedTo) {
       setValidationError('Please enter both origin and destination cities.');
+      return;
+    }
+
+    if (!isFromConfirmed) {
+      setValidationError('Please select the origin city from the suggestion list.');
+      return;
+    }
+
+    if (!isToConfirmed) {
+      setValidationError('Please select the destination city from the suggestion list.');
       return;
     }
 
@@ -170,13 +186,15 @@ export default function HeroSearchWidget({
               id="hero-from-city"
               label="From"
               value={fromCity}
-              onChange={(val) => {
+              isConfirmed={isFromConfirmed}
+              onChange={(val, confirmed) => {
                 setFromCity(val);
+                setIsFromConfirmed(confirmed);
                 setValidationError('');
               }}
               placeholder="Origin city"
               allCities={unifiedCities}
-              hasError={Boolean(validationError && !fromCity)}
+              hasError={Boolean(validationError && (!fromCity || !isFromConfirmed))}
             />
           </div>
 
@@ -203,13 +221,15 @@ export default function HeroSearchWidget({
               id="hero-to-city"
               label="To"
               value={toCity}
-              onChange={(val) => {
+              isConfirmed={isToConfirmed}
+              onChange={(val, confirmed) => {
                 setToCity(val);
+                setIsToConfirmed(confirmed);
                 setValidationError('');
               }}
               placeholder="Destination city"
               allCities={unifiedCities}
-              hasError={Boolean(validationError && !toCity)}
+              hasError={Boolean(validationError && (!toCity || !isToConfirmed))}
             />
           </div>
 

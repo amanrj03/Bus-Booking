@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { MapPinIcon, XMarkIcon } from '@heroicons/react/24/solid';
-import { filterCities } from '../../config/citiesConfig';
+import { MapPinIcon, XMarkIcon, CheckCircleIcon } from '@heroicons/react/24/solid';
+import { filterCities, isValidCatalogCity } from '../../config/citiesConfig';
 
 export default function CitySearchInput({
   id,
   label,
   value,
+  isConfirmed = true,
   onChange,
   placeholder = 'Enter city',
   allCities = [],
@@ -17,7 +18,7 @@ export default function CitySearchInput({
   const containerRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Filter cities based on current input value
+  // Filter cities based on current input query
   const suggestions = useMemo(() => {
     return filterCities(allCities, value);
   }, [allCities, value]);
@@ -33,13 +34,13 @@ export default function CitySearchInput({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Reset highlight index when suggestions change
+  // Reset highlighted index when suggestions change
   useEffect(() => {
     setHighlightedIndex(0);
   }, [suggestions]);
 
   const handleSelectCity = (cityName) => {
-    onChange(cityName);
+    onChange(cityName, true);
     setIsOpen(false);
     if (onSelectNext) {
       setTimeout(() => onSelectNext(), 50);
@@ -67,8 +68,6 @@ export default function CitySearchInput({
       e.preventDefault();
       if (suggestions[highlightedIndex]) {
         handleSelectCity(suggestions[highlightedIndex].name);
-      } else if (value.trim()) {
-        handleSelectCity(value.trim());
       }
     } else if (e.key === 'Escape') {
       setIsOpen(false);
@@ -77,12 +76,12 @@ export default function CitySearchInput({
 
   const handleClear = (e) => {
     e.stopPropagation();
-    onChange('');
+    onChange('', false);
     setIsOpen(true);
     inputRef.current?.focus();
   };
 
-  // Highlight matching search text
+  // Render search text with highlight
   const renderHighlighted = (text, query) => {
     if (!query || !query.trim()) return text;
     const q = query.trim().toLowerCase();
@@ -117,21 +116,41 @@ export default function CitySearchInput({
             ? 'border-red-400 ring-2 ring-red-100'
             : isOpen
             ? 'border-[#73d200] ring-2 ring-[#73d200]/20'
+            : isConfirmed && value
+            ? 'border-gray-300 hover:border-gray-400'
+            : value
+            ? 'border-amber-400 ring-2 ring-amber-50'
             : 'border-gray-300 hover:border-gray-400'
         }`}
       >
         <MapPinIcon
           className={`w-5 h-5 shrink-0 transition-colors ${
-            isOpen ? 'text-[#73d200]' : 'text-gray-400'
+            isOpen ? 'text-[#73d200]' : isConfirmed ? 'text-emerald-600' : 'text-gray-400'
           }`}
         />
         <div className="flex-1 min-w-0">
-          <label
-            htmlFor={id}
-            className="text-[10px] uppercase font-bold tracking-wider text-gray-400 block cursor-text select-none"
-          >
-            {label}
-          </label>
+          <div className="flex items-center justify-between">
+            <label
+              htmlFor={id}
+              className="text-[10px] uppercase font-bold tracking-wider text-gray-400 block cursor-text select-none"
+            >
+              {label}
+            </label>
+            {value && (
+              <div>
+                {isConfirmed ? (
+                  <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                    <span>✓</span>
+                    <span>Selected</span>
+                  </span>
+                ) : (
+                  <span className="text-[9px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded-full animate-pulse">
+                    Select from list
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
           <input
             ref={inputRef}
             id={id}
@@ -141,7 +160,10 @@ export default function CitySearchInput({
             spellCheck="false"
             onFocus={() => setIsOpen(true)}
             onChange={(e) => {
-              onChange(e.target.value);
+              const text = e.target.value;
+              // If user changes text, it's not confirmed until they pick from the list or exactly match
+              const exactMatch = isValidCatalogCity(allCities, text);
+              onChange(text, exactMatch);
               setIsOpen(true);
             }}
             onKeyDown={handleKeyDown}
@@ -150,12 +172,12 @@ export default function CitySearchInput({
           />
         </div>
 
-        {/* Clear Button (shown when non-empty) */}
+        {/* Clear Button */}
         {value && (
           <button
             type="button"
             onClick={handleClear}
-            title="Clear"
+            title="Clear city"
             aria-label="Clear city"
             className="p-1 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
           >
@@ -175,73 +197,64 @@ export default function CitySearchInput({
                 : 'Popular Indian Destinations'}
             </span>
             <span className="text-[10px] text-gray-400 lowercase font-normal">
-              click or press enter
+              Click to select
             </span>
           </div>
 
           {/* Suggestions List */}
-          <div className="max-h-64 overflow-y-auto divide-y divide-gray-50">
-            {suggestions.length > 0 ? (
-              suggestions.map((city, idx) => {
-                const isSelected = idx === highlightedIndex;
-                return (
-                  <button
-                    key={`${city.name}-${city.state}`}
-                    type="button"
-                    onMouseEnter={() => setHighlightedIndex(idx)}
-                    onClick={() => handleSelectCity(city.name)}
-                    className={`w-full text-left px-4 py-2.5 flex items-center justify-between transition-colors cursor-pointer ${
-                      isSelected ? 'bg-[#73d200]/15' : 'hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div
-                        className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors ${
-                          isSelected
-                            ? 'bg-[#73d200] text-gray-950 font-black'
-                            : 'bg-gray-100 text-gray-500'
-                        }`}
-                      >
-                        <MapPinIcon className="w-3.5 h-3.5" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="font-extrabold text-sm text-gray-900 truncate">
-                          {renderHighlighted(city.name, value)}
-                        </div>
-                        {city.hub && (
-                          <div className="text-[11px] text-gray-500 truncate">
-                            {city.hub}
-                          </div>
+          <div className="max-h-72 overflow-y-auto divide-y divide-gray-50">
+            {suggestions.map((city, idx) => {
+              const isSelected = idx === highlightedIndex;
+              return (
+                <button
+                  key={`${city.name}-${city.state}-${idx}`}
+                  type="button"
+                  onMouseEnter={() => setHighlightedIndex(idx)}
+                  onClick={() => handleSelectCity(city.name)}
+                  className={`w-full text-left px-4 py-2.5 flex items-center justify-between transition-colors cursor-pointer ${
+                    isSelected ? 'bg-[#73d200]/15' : 'hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                        isSelected
+                          ? 'bg-[#73d200] text-gray-950 font-black'
+                          : 'bg-gray-100 text-gray-500'
+                      }`}
+                    >
+                      <MapPinIcon className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="font-extrabold text-sm text-gray-900 truncate flex items-center gap-1.5">
+                        <span>{renderHighlighted(city.name, value)}</span>
+                        {city.isDynamic && (
+                          <span className="text-[9px] bg-blue-50 text-blue-700 px-1.5 py-0.2 rounded font-semibold uppercase">
+                            Custom City
+                          </span>
                         )}
                       </div>
+                      {city.hub && (
+                        <div className="text-[11px] text-gray-500 truncate">
+                          {city.hub}
+                        </div>
+                      )}
                     </div>
+                  </div>
 
-                    {city.state && (
-                      <span className="text-[10px] uppercase font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full shrink-0 ml-2">
-                        {city.state}
-                      </span>
-                    )}
-                  </button>
-                );
-              })
-            ) : (
-              <div className="p-4 text-center space-y-2">
-                <p className="text-xs text-gray-500">
-                  No popular destinations matching &quot;
-                  <span className="font-bold text-gray-800">{value}</span>&quot;
-                </p>
-                {value.trim() && (
-                  <button
-                    type="button"
-                    onClick={() => handleSelectCity(value.trim())}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#73d200]/20 hover:bg-[#73d200]/30 text-gray-900 font-bold text-xs transition-colors"
-                  >
-                    <span>Use &quot;{value.trim()}&quot; as city</span>
-                    <span>→</span>
-                  </button>
-                )}
-              </div>
-            )}
+                  {city.state && (
+                    <span className="text-[10px] uppercase font-bold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full shrink-0 ml-2">
+                      {city.state}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Helper footer */}
+          <div className="p-2.5 bg-gray-50 border-t border-gray-100 text-[11px] text-gray-500 text-center font-medium">
+            Please click or press Enter on a destination above to select your city.
           </div>
         </div>
       )}
