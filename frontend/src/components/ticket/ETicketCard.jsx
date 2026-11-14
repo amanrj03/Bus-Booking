@@ -72,18 +72,18 @@ export default function ETicketCard({ booking }) {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-xl bg-[#73d200] flex items-center justify-center text-gray-900 font-black text-xl italic shadow-md">
-              A
+              G
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-lg font-black tracking-tight">Algions Express</span>
+                <span className="text-lg font-black tracking-tight">GoBus Express</span>
                 <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-white/10 text-[#73d200]">
                   Official E-Ticket
                 </span>
               </div>
               <p className="text-xs text-gray-400">
                 Operated by {operator.companyName || operator.name || 'Verified Carrier'} • 24x7 Helpline:{' '}
-                {operator.contactPhone || '1800-ALGIONS-BUS'}
+                {operator.contactPhone || '1800-102-3549'}
               </p>
             </div>
           </div>
@@ -365,7 +365,7 @@ export default function ETicketCard({ booking }) {
 
       {/* Ticket Footer Tear-Off Style */}
       <div className="bg-gray-100 px-6 py-4 border-t border-dashed border-gray-300 text-center text-[11px] text-gray-500">
-        Thank you for travelling with Algions Intercity Express. Have a comfortable and safe journey!
+        Thank you for travelling with GoBus Express. Have a comfortable and safe journey!
       </div>
     </div>
   );

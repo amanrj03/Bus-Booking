@@ -738,7 +738,7 @@ export default function CheckoutPage() {
             </Button>
 
             <p className="text-[11px] text-center text-gray-400">
-              Row-level PostgreSQL locking protects your seats until transaction completion.
+              Your seats are securely reserved and protected until payment completion.
             </p>
           </Card>
         </aside>

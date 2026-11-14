@@ -1,7 +1,7 @@
 # UI/UX Research & Design System Specification
 
 **Project:** Bus Booking Management System  
-**Internship Assessment:** Algions AI Labs Private Limited  
+**Domain:** Enterprise Transit & Fleet Operations Platform  
 **Reference Source:** `UI_INSPIRATION/`  
 **Icon Standard:** `@heroicons/react` (Exclusively)  
 **Theme:** Modern European/Indian Intercity Coach Platform (GoBus)  

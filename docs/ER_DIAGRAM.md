@@ -1,7 +1,7 @@
 # Database Architecture & Entity-Relationship (ER) Specification
 
 **Platform:** GoBus - Intercity Bus Booking Platform  
-**Internship Assessment:** Algions AI Labs Private Limited  
+**Architecture:** High-Throughput Relational Transit Data Model  
 **Database Engine:** PostgreSQL 16+  
 **ORM & Migration Framework:** Prisma ORM Client 6.x  
 **Data Integrity Paradigm:** ACID-compliant Relational Architecture with Pessimistic Row-Level Locking (`SELECT ... FOR UPDATE`)

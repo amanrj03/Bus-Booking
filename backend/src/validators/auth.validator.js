@@ -34,7 +34,20 @@ const loginSchema = z.object({
     .min(1, 'Password is required'),
 });
 
+const googleAuthSchema = z.object({
+  credential: z.string().optional(),
+  email: z
+    .string({ required_error: 'Google email is required' })
+    .trim()
+    .toLowerCase()
+    .email('Invalid email address format'),
+  name: z.string().trim().min(1).default('Google Passenger'),
+  picture: z.string().url().optional().or(z.literal('')),
+  sub: z.string().optional(),
+});
+
 module.exports = {
   registerSchema,
   loginSchema,
+  googleAuthSchema,
 };

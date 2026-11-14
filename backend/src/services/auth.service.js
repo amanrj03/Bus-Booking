@@ -1,3 +1,4 @@
+const crypto = require('node:crypto');
 const bcrypt = require('bcryptjs');
 const prisma = require('../config/prisma');
 const { generateToken } = require('../utils/jwt');
@@ -116,9 +117,70 @@ async function getUserProfile(userId) {
   return sanitizeUser(user);
 }
 
+/**
+ * Authenticates or auto-registers a user via Google OAuth SSO
+ * @param {{ email: string, name?: string, picture?: string, sub?: string }} payload
+ */
+async function loginWithGoogle({ email, name, picture, sub }) {
+  const normalizedEmail = email.toLowerCase().trim();
+
+  let user = await prisma.user.findUnique({
+    where: { email: normalizedEmail },
+    include: {
+      operator: {
+        select: {
+          id: true,
+          name: true,
+          companyName: true,
+          isActive: true,
+        },
+      },
+    },
+  });
+
+  let isNewUser = false;
+  if (!user) {
+    const randomPassword = crypto.randomUUID();
+    const passwordHash = await bcrypt.hash(randomPassword, 10);
+
+    user = await prisma.user.create({
+      data: {
+        name: name?.trim() || 'Google Passenger',
+        email: normalizedEmail,
+        passwordHash,
+        role: 'PASSENGER',
+      },
+      include: {
+        operator: {
+          select: {
+            id: true,
+            name: true,
+            companyName: true,
+            isActive: true,
+          },
+        },
+      },
+    });
+    isNewUser = true;
+  }
+
+  const token = generateToken({
+    userId: user.id,
+    role: user.role,
+    email: user.email,
+  });
+
+  return {
+    user: sanitizeUser(user),
+    token,
+    isNewUser,
+  };
+}
+
 module.exports = {
   sanitizeUser,
   registerUser,
   loginUser,
   getUserProfile,
+  loginWithGoogle,
 };

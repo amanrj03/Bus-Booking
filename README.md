@@ -8,7 +8,7 @@
 [![OpenAPI 3.0](https://img.shields.io/badge/OpenAPI-3.0.3-85ea2d?style=flat&logo=swagger&logoColor=black)](http://localhost:5000/api-docs)
 [![Tests Passing](https://img.shields.io/badge/Tests-144%20Passing%20(121%20BE%20%2B%2023%20FE)-brightgreen?style=flat)](https://github.com/amanrj03/Bus-Booking)
 
-A production-grade, enterprise-scale **Bus Booking Management System** engineered for the **Algions AI Labs Private Limited** full-stack internship technical assessment.
+A production-grade, enterprise-scale **Bus Booking Management System** engineered as a high-performance intercity coach reservation, fleet management, and real-time inventory operations platform.
 
 GoBus models a modern intercity coach reservation platform connecting major Indian transit corridors (e.g., *Delhi ↔ Jaipur*, *Mumbai ↔ Pune*, *Bangalore ↔ Chennai*, *Delhi ↔ Manali*). The platform incorporates ACID-compliant concurrency locks, temporary seat reservation holds, dynamic pricing, tiered cancellation math, printable QR e-tickets, real-time passenger manifests, and executive analytics dashboards.
 
@@ -26,7 +26,7 @@ GoBus models a modern intercity coach reservation platform connecting major Indi
 8. [Reporting, Analytics & Audit Logging](#8-reporting-analytics--audit-logging)
 9. [Automated Test Suite & Benchmarks](#9-automated-test-suite--benchmarks)
 10. [3–5 Minute Video Walkthrough Script](#10-35-minute-video-walkthrough-script)
-11. [Assessment Rubric Alignment Matrix](#11-assessment-rubric-alignment-matrix)
+11. [Engineering Capabilities & Architecture Matrix](#11-engineering-capabilities--architecture-matrix)
 12. [Project Documentation Links](#12-project-documentation-links)
 
 ---
@@ -361,18 +361,18 @@ Use this structured script when recording the evaluation video walkthrough:
 
 | Time | Segment | Screen / View | Narration & Action Guide |
 |---|---|---|---|
-| **0:00 – 0:45** | **Architecture & Tech Stack** | Codebase & Swagger UI (`/api-docs`) | *"Welcome to GoBus, a production-grade intercity bus booking platform built for Algions AI Labs. Here is our architecture: Node.js, Express, PostgreSQL 16 with Prisma ORM, and React 19 with Tailwind CSS. Over 15,000 realistic records are seeded, and all endpoints are documented in Swagger OpenAPI 3.0."* |
+| **0:00 – 0:45** | **Architecture & Tech Stack** | Codebase & Swagger UI (`/api-docs`) | *"Welcome to GoBus, an enterprise-grade intercity bus booking platform. Here is our architecture: Node.js, Express, PostgreSQL 16 with Prisma ORM, and React 19 with Tailwind CSS. Over 15,000 realistic records are seeded, and all endpoints are documented in Swagger OpenAPI 3.0."* |
 | **0:45 – 1:45** | **Passenger Search & Checkout** | Home Page (`/`) ➔ Search Results (`/search`) ➔ Checkout (`/checkout`) | *"Let's book a coach from Delhi to Jaipur on Nov 15. The search results show live availability, amenities, and departure times. Opening the seat drawer shows our 2-deck layout with steering wheel cabin orientation. Selecting seat 4A locks it instantly with our 10-minute hold countdown timer. We complete the 5-step checkout with simulated UPI payment and land on our confirmed e-ticket with dynamic QR code and unique PNR."* |
 | **1:45 – 2:45** | **Concurrency & Zero Double-Booking** | Terminal (`npm test src/tests/concurrency.race.test.js`) | *"Now let's demonstrate our concurrency engine. When multiple passengers try to lock or book the exact same seat simultaneously, PostgreSQL row-level locks serialize the operations. Running our automated concurrency test suite proves that exactly 1 request acquires the seat while all parallel requests receive a clean 409 Conflict. Zero overselling is mathematically guaranteed."* |
 | **2:45 – 3:45** | **Tiered Cancellation & Seat Restock** | Passenger Portal (`/my-bookings`) | *"Under 'My Bookings', passengers can view upcoming and past journeys. Initiating a cancellation triggers our tiered refund calculation engine: cancelling 36 hours prior grants a full 100% refund. Submitting the cancellation marks the booking as CANCELLED, records a refund audit entry, and immediately releases the seat back to AVAILABLE for other passengers to book."* |
 | **3:45 – 4:45** | **Admin Dashboard & Passenger Manifest** | Admin Portal (`/admin/dashboard` & `/admin/manifest`) | *"Logging in as an Admin or Operator opens the executive dashboard powered by Recharts, showing 30-day revenue trends, occupancy percentages, and fleet health. Conductor manifests provide a printable passenger roster with boarding stops, age, gender, and contact info. Every sensitive operation is tracked in our append-only audit log."* |
-| **4:45 – 5:00** | **Conclusion & Quality Assurance** | Terminal (Test suites passing) | *"All 121 backend tests and 23 frontend tests pass with zero warnings, satisfying 100% of the Algions AI Labs assessment rubric. Thank you!"* |
+| **4:45 – 5:00** | **Conclusion & Quality Assurance** | Terminal (Test suites passing) | *"All 121 backend tests and 23 frontend tests pass with zero warnings, validating complete system reliability and performance. Thank you!"* |
 
 ---
 
-## 11. Assessment Rubric Alignment Matrix
+## 11. Engineering Capabilities & Architecture Matrix
 
-| Evaluation Criteria | Requirement | GoBus Implementation | Source References |
+| Capability Domain | Architecture Requirement | GoBus Implementation | Source References |
 |---|---|---|---|
 | **System Architecture** | Clean separation of concerns, decoupled frontend/backend | Modular Node.js/Express REST API and Vite + React 19 SPA monorepo. | `backend/src/`, `frontend/src/` |
 | **Relational Database** | Normalized schema, foreign keys, cascade rules, indexing | 15 Prisma models with composite unique keys, OnDelete constraints, and hot-path indexes. | [ER_DIAGRAM.md](file:///D:/Bus%20Booking/docs/ER_DIAGRAM.md), `backend/prisma/schema.prisma` |
@@ -395,4 +395,4 @@ Use this structured script when recording the evaluation video walkthrough:
 
 ---
 
-**Developed for Algions AI Labs Private Limited Internship Assessment — November 2026**
+**GoBus Technologies — Safe, Reliable & Connected Intercity Transit**

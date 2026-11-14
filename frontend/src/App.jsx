@@ -14,19 +14,6 @@ import AdminDashboardPage from './pages/AdminDashboardPage';
 import PassengerManifestPage from './pages/PassengerManifestPage';
 import AuditLogsPage from './pages/AuditLogsPage';
 
-function PlaceholderView({ title }) {
-  return (
-    <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-      <Card>
-        <h2 className="text-xl font-black text-gray-900 mb-2">{title}</h2>
-        <p className="text-sm text-gray-500">
-          This module will be connected to live PostgreSQL APIs in upcoming commits.
-        </p>
-      </Card>
-    </div>
-  );
-}
-
 function AppShell() {
   const { user, openAuthModal, logout } = useAuth();
 
@@ -51,22 +38,6 @@ function AppShell() {
           element={
             <ProtectedRoute allowedRoles={['ADMIN', 'OPERATOR']}>
               <AdminDashboardPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/manifest"
-          element={
-            <ProtectedRoute allowedRoles={['ADMIN', 'OPERATOR']}>
-              <PassengerManifestPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/audit-logs"
-          element={
-            <ProtectedRoute allowedRoles={['ADMIN']}>
-              <AuditLogsPage />
             </ProtectedRoute>
           }
         />

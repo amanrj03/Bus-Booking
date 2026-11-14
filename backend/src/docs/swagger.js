@@ -15,7 +15,7 @@ function setupSwagger(app) {
 
   // Swagger UI presentation
   const swaggerOptions = {
-    customSiteTitle: 'Algions Bus Booking Management System — API Reference',
+    customSiteTitle: 'GoBus Bus Booking Management System — API Reference',
     customCss: `
       .swagger-ui .topbar { display: none; }
       .swagger-ui .info { margin: 20px 0; }

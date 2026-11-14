@@ -27,7 +27,7 @@ export default function Footer() {
             </p>
             <div className="flex items-center gap-2 text-xs text-[#73d200] font-semibold">
               <ShieldCheckIcon className="w-4 h-4 shrink-0" />
-              <span>PostgreSQL Concurrency Protected</span>
+              <span>100% Safe & Secure Booking</span>
             </div>
           </div>
 
@@ -106,7 +106,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-2">
                 <EnvelopeIcon className="w-4 h-4 text-[#73d200] shrink-0" />
-                <span>support@busbooking.local</span>
+                <span>support@gobus.in</span>
               </li>
               <li className="flex items-center gap-2 pt-1">
                 <TruckIcon className="w-4 h-4 text-[#73d200] shrink-0" />
@@ -117,8 +117,8 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-800 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-gray-500">
-          <p>© 2026 Bus Booking Management System — Algions AI Labs Internship Assessment.</p>
-          <p>Simulated Payments Enabled • Local PostgreSQL 18</p>
+          <p>© 2026 GoBus Technologies Pvt. Ltd. All rights reserved.</p>
+          <p>Connecting 35+ Indian Intercity Corridors • Safe, Clean & Punctual</p>
         </div>
       </div>
     </footer>

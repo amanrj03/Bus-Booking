@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { loginUser, registerUser, fetchCurrentUser } from '../services/auth.service';
+import { loginUser, registerUser, fetchCurrentUser, loginWithGoogle as loginWithGoogleService } from '../services/auth.service';
 
 const AuthContext = createContext(null);
 
@@ -46,6 +46,14 @@ export function AuthProvider({ children }) {
     return registeredUser;
   };
 
+  const loginWithGoogle = async (googlePayload) => {
+    const { user: googleUser, token } = await loginWithGoogleService(googlePayload);
+    localStorage.setItem('token', token);
+    setUser(googleUser);
+    setIsAuthModalOpen(false);
+    return googleUser;
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
@@ -61,6 +69,7 @@ export function AuthProvider({ children }) {
     isAuthModalOpen,
     login,
     register,
+    loginWithGoogle,
     logout,
     openAuthModal,
     closeAuthModal,

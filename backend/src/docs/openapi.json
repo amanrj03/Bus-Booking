@@ -1,12 +1,12 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "Algions Intercity Express — Bus Booking Management System API",
+    "title": "GoBus — Bus Booking Management System API",
     "version": "1.0.0",
     "description": "Production-grade RESTful API engine for intercity bus booking, inventory management, concurrency protection, and analytics.",
     "contact": {
-      "name": "Algions AI Labs Assessment Submission",
-      "email": "amanrj03@gmail.com"
+      "name": "GoBus Engineering Team",
+      "email": "developer@gobus.in"
     }
   },
   "servers": [
@@ -202,6 +202,33 @@
         "responses": {
           "200": { "description": "Authentication successful; returns token and user profile" },
           "401": { "description": "Invalid credentials or nonexistent email" }
+        }
+      }
+    },
+    "/auth/google": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Authenticate or register passenger via Google Single Sign-On (SSO)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email"],
+                "properties": {
+                  "email": { "type": "string", "format": "email", "example": "passenger.google@gmail.com" },
+                  "name": { "type": "string", "example": "Rahul Sharma" },
+                  "picture": { "type": "string", "format": "uri" },
+                  "sub": { "type": "string", "description": "Google user unique identifier" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Existing user authenticated successfully" },
+          "201": { "description": "New passenger user auto-provisioned and authenticated" }
         }
       }
     },

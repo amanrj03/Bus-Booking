@@ -47,6 +47,33 @@ async function login(req, res, next) {
 }
 
 /**
+ * POST /api/v1/auth/google
+ */
+async function googleLogin(req, res, next) {
+  try {
+    const result = await authService.loginWithGoogle(req.body);
+
+    await recordAudit({
+      userId: result.user.id,
+      action: result.isNewUser ? AUDIT_ACTIONS.USER_REGISTERED : AUDIT_ACTIONS.USER_LOGIN,
+      entity: 'User',
+      entityId: result.user.id,
+      details: { email: result.user.email, provider: 'GOOGLE_OAUTH', role: result.user.role },
+      ipAddress: req.ip,
+    });
+
+    return sendSuccess(
+      res,
+      { user: result.user, token: result.token },
+      result.isNewUser ? 'Google account registered and logged in' : 'Logged in with Google successfully',
+      result.isNewUser ? 201 : 200
+    );
+  } catch (error) {
+    return next(error);
+  }
+}
+
+/**
  * GET /api/v1/auth/me
  */
 async function getProfile(req, res, next) {
@@ -61,5 +88,6 @@ async function getProfile(req, res, next) {
 module.exports = {
   register,
   login,
+  googleLogin,
   getProfile,
 };

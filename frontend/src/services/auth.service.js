@@ -14,3 +14,8 @@ export async function fetchCurrentUser() {
   const response = await api.get('/auth/me');
   return response.data.data.user;
 }
+
+export async function loginWithGoogle(googleData) {
+  const response = await api.post('/auth/google', googleData);
+  return response.data.data; // { user, token }
+}

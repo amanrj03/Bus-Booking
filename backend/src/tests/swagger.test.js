@@ -11,7 +11,7 @@ describe('Swagger / OpenAPI 3.0 Documentation Suite', () => {
     assert.equal(res.status, 200);
     assert.equal(res.headers['content-type'].includes('application/json'), true);
     assert.equal(res.body.openapi, '3.0.3');
-    assert.equal(res.body.info.title, 'Algions Intercity Express — Bus Booking Management System API');
+    assert.equal(res.body.info.title, 'GoBus — Bus Booking Management System API');
     assert.ok(res.body.paths['/bookings']);
     assert.ok(res.body.paths['/trips/search']);
     assert.ok(res.body.paths['/reports/manifest/{tripId}']);

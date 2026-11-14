@@ -184,7 +184,7 @@ export default function AdminDashboardPage() {
               <Badge variant="operator">{user?.role || 'ADMIN'}</Badge>
             </div>
             <p className="text-xs sm:text-sm text-gray-500 mt-1">
-              Real-time PostgreSQL analytics: fleet occupancy, passenger manifests, and revenue performance.
+              Real-time fleet analytics: occupancy trends, passenger manifests, and revenue performance.
             </p>
           </div>
 

@@ -295,11 +295,11 @@ export default function PassengerManifestPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-[#73d200] text-gray-900 font-black text-xl italic flex items-center justify-center">
-                  A
+                  G
                 </div>
                 <div>
                   <div className="text-xl font-black text-gray-900 tracking-tight">
-                    ALGIONS INTERCITY EXPRESS — PASSENGER MANIFEST
+                    GOBUS INTERCITY EXPRESS — PASSENGER MANIFEST
                   </div>
                   <p className="text-xs text-gray-600 font-semibold">
                     Carrier: {bus.operator?.companyName || 'Verified Carrier'} • Conductor Copy
