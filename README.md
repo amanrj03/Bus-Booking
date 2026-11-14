@@ -6,7 +6,7 @@
 [![React](https://img.shields.io/badge/React-19.x-61dafb?style=flat&logo=react&logoColor=black)](https://react.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.x-38b2ac?style=flat&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![OpenAPI 3.0](https://img.shields.io/badge/OpenAPI-3.0.3-85ea2d?style=flat&logo=swagger&logoColor=black)](http://localhost:5000/api-docs)
-[![Tests Passing](https://img.shields.io/badge/Tests-144%20Passing%20(121%20BE%20%2B%2023%20FE)-brightgreen?style=flat)](https://github.com/amanrj03/Bus-Booking)
+[![Tests Passing](https://img.shields.io/badge/Tests-148%20Passing%20(124%20BE%20%2B%2024%20FE)-brightgreen?style=flat)](https://github.com/amanrj03/Bus-Booking)
 
 A production-grade, enterprise-scale **Bus Booking Management System** engineered as a high-performance intercity coach reservation, fleet management, and real-time inventory operations platform.
 
@@ -18,16 +18,15 @@ GoBus models a modern intercity coach reservation platform connecting major Indi
 
 1. [Architectural Highlights](#1-architectural-highlights)
 2. [Technology Stack](#2-technology-stack)
-3. [Zero-Cloud Local Setup Guide](#3-zero-cloud-local-setup-guide)
-4. [Documented Demo Accounts & Credentials](#4-documented-demo-accounts--credentials)
+3. [Local Development Setup](#3-local-development-setup)
+4. [Demo Accounts & Credentials](#4-demo-accounts--credentials)
 5. [Interactive Swagger / OpenAPI Documentation](#5-interactive-swagger--openapi-documentation)
 6. [Concurrency Engine & Zero Double-Booking Guarantee](#6-concurrency-engine--zero-double-booking-guarantee)
 7. [Tiered Cancellation & Instant Restock Rules](#7-tiered-cancellation--instant-restock-rules)
 8. [Reporting, Analytics & Audit Logging](#8-reporting-analytics--audit-logging)
 9. [Automated Test Suite & Benchmarks](#9-automated-test-suite--benchmarks)
-10. [3–5 Minute Video Walkthrough Script](#10-35-minute-video-walkthrough-script)
-11. [Engineering Capabilities & Architecture Matrix](#11-engineering-capabilities--architecture-matrix)
-12. [Project Documentation Links](#12-project-documentation-links)
+10. [Engineering Capabilities & Architecture Matrix](#10-engineering-capabilities--architecture-matrix)
+11. [Project Documentation Links](#11-project-documentation-links)
 
 ---
 
@@ -89,7 +88,7 @@ flowchart TB
 
 ---
 
-## 3. Zero-Cloud Local Setup Guide
+## 3. Local Development Setup
 
 Follow these steps to run GoBus locally in less than 3 minutes.
 
@@ -126,7 +125,7 @@ FRONTEND_URL="http://localhost:5173"
 
 ---
 
-### 3.4 Step 3: Database Setup & Large-Scale Seeding
+### 3.4 Step 3: Database Setup & Seeding
 Create the local database and run the Prisma migrations and seed script:
 ```bash
 # In PostgreSQL CLI or pgAdmin:
@@ -141,7 +140,7 @@ npm install
 # Apply database schema migrations
 npx prisma migrate dev --name init
 
-# Seed the database with realistic Indian bus fleet data
+# Seed the database with realistic bus fleet data
 npm run seed
 ```
 > **Seeding Output:** Automatically populates ~15,000 relational records including 10 operators (Zingbus, IntrCity, Orange Travels), 45 buses, 1,700 seats, 35 routes, 250 trips, 650 bookings, and 450 audit logs.
@@ -174,7 +173,7 @@ npm run dev
 
 ---
 
-## 4. Documented Demo Accounts & Credentials
+## 4. Demo Accounts & Credentials
 
 The database is pre-seeded with authenticated accounts for all three RBAC roles (`ADMIN`, `OPERATOR`, `PASSENGER`). All accounts share the password: `Password123!`.
 
@@ -320,17 +319,17 @@ $$\text{Occupancy Rate (\%)} = \left( \frac{N_{\text{booked seats}}}{N_{\text{to
 
 ## 9. Automated Test Suite & Benchmarks
 
-The GoBus platform is protected by a 144-test automated test suite across backend and frontend stacks:
+The GoBus platform is protected by a 148-test automated test suite across backend and frontend stacks:
 
 ```bash
-# Run all Backend Tests (121 tests, 46 suites)
+# Run all Backend Tests (124 tests, 47 suites)
 cd backend
 npm test
 
 # Run Concurrency Race-Condition Test specifically
 node --test src/tests/concurrency.race.test.js
 
-# Run Frontend Tests (23 tests, 5 suites)
+# Run Frontend Tests (24 tests, 6 suites)
 cd frontend
 npm test
 
@@ -355,43 +354,28 @@ npm run build
 
 ---
 
-## 10. 3–5 Minute Video Walkthrough Script
-
-Use this structured script when recording the evaluation video walkthrough:
-
-| Time | Segment | Screen / View | Narration & Action Guide |
-|---|---|---|---|
-| **0:00 – 0:45** | **Architecture & Tech Stack** | Codebase & Swagger UI (`/api-docs`) | *"Welcome to GoBus, an enterprise-grade intercity bus booking platform. Here is our architecture: Node.js, Express, PostgreSQL 16 with Prisma ORM, and React 19 with Tailwind CSS. Over 15,000 realistic records are seeded, and all endpoints are documented in Swagger OpenAPI 3.0."* |
-| **0:45 – 1:45** | **Passenger Search & Checkout** | Home Page (`/`) ➔ Search Results (`/search`) ➔ Checkout (`/checkout`) | *"Let's book a coach from Delhi to Jaipur on Nov 15. The search results show live availability, amenities, and departure times. Opening the seat drawer shows our 2-deck layout with steering wheel cabin orientation. Selecting seat 4A locks it instantly with our 10-minute hold countdown timer. We complete the 5-step checkout with simulated UPI payment and land on our confirmed e-ticket with dynamic QR code and unique PNR."* |
-| **1:45 – 2:45** | **Concurrency & Zero Double-Booking** | Terminal (`npm test src/tests/concurrency.race.test.js`) | *"Now let's demonstrate our concurrency engine. When multiple passengers try to lock or book the exact same seat simultaneously, PostgreSQL row-level locks serialize the operations. Running our automated concurrency test suite proves that exactly 1 request acquires the seat while all parallel requests receive a clean 409 Conflict. Zero overselling is mathematically guaranteed."* |
-| **2:45 – 3:45** | **Tiered Cancellation & Seat Restock** | Passenger Portal (`/my-bookings`) | *"Under 'My Bookings', passengers can view upcoming and past journeys. Initiating a cancellation triggers our tiered refund calculation engine: cancelling 36 hours prior grants a full 100% refund. Submitting the cancellation marks the booking as CANCELLED, records a refund audit entry, and immediately releases the seat back to AVAILABLE for other passengers to book."* |
-| **3:45 – 4:45** | **Admin Dashboard & Passenger Manifest** | Admin Portal (`/admin/dashboard` & `/admin/manifest`) | *"Logging in as an Admin or Operator opens the executive dashboard powered by Recharts, showing 30-day revenue trends, occupancy percentages, and fleet health. Conductor manifests provide a printable passenger roster with boarding stops, age, gender, and contact info. Every sensitive operation is tracked in our append-only audit log."* |
-| **4:45 – 5:00** | **Conclusion & Quality Assurance** | Terminal (Test suites passing) | *"All 121 backend tests and 23 frontend tests pass with zero warnings, validating complete system reliability and performance. Thank you!"* |
-
----
-
-## 11. Engineering Capabilities & Architecture Matrix
+## 10. Engineering Capabilities & Architecture Matrix
 
 | Capability Domain | Architecture Requirement | GoBus Implementation | Source References |
 |---|---|---|---|
 | **System Architecture** | Clean separation of concerns, decoupled frontend/backend | Modular Node.js/Express REST API and Vite + React 19 SPA monorepo. | `backend/src/`, `frontend/src/` |
-| **Relational Database** | Normalized schema, foreign keys, cascade rules, indexing | 15 Prisma models with composite unique keys, OnDelete constraints, and hot-path indexes. | [ER_DIAGRAM.md](file:///D:/Bus%20Booking/docs/ER_DIAGRAM.md), `backend/prisma/schema.prisma` |
+| **Relational Database** | Normalized schema, foreign keys, cascade rules, indexing | 15 Prisma models with composite unique keys, OnDelete constraints, and hot-path indexes. | [docs/ER_DIAGRAM.md](docs/ER_DIAGRAM.md), `backend/prisma/schema.prisma` |
 | **Concurrency Control** | Double-booking prevention during concurrent checkout | PostgreSQL `SELECT ... FOR UPDATE` row locks inside atomic Prisma transactions. | `backend/src/services/trip.service.js`, `backend/src/services/booking.service.js` |
 | **Seat Hold Lifecycle** | Temporary hold expiration mechanism | 10-minute hold timer with timestamp deadline (`lockedUntil`) and lazy-sweep re-release. | `backend/src/services/booking.service.js`, `frontend/src/pages/CheckoutPage.jsx` |
 | **Cancellation Rules** | Tiered refund calculation and seat re-availability | 3-tiered cancellation policy ($100\%, 50\%, 0\%$) with atomic seat status reset to `AVAILABLE`. | `backend/src/services/cancellation.service.js`, `frontend/src/components/booking/CancellationModal.jsx` |
 | **Reporting & Manifests**| Conductor passenger manifests, occupancy %, revenue | Dedicated report service generating passenger rosters, occupancy formulas, and Recharts charts. | `backend/src/services/report.service.js`, `frontend/src/pages/AdminDashboardPage.jsx` |
 | **Security & RBAC** | Stateless JWT authentication, role authorization, audit logs | JWT middleware with `ADMIN`, `OPERATOR`, `PASSENGER` role guards and append-only audit trail. | `backend/src/middleware/auth.middleware.js`, `backend/src/services/audit.service.js` |
 | **API Documentation** | Complete API specification for all endpoints | OpenAPI 3.0.3 specification accessible via Swagger UI at `/api-docs`. | `backend/src/docs/swagger.js`, `backend/src/docs/openapi.json` |
-| **Automated Testing** | Unit, integration, and concurrency race tests | 144 automated tests (121 backend, 23 frontend) passing with zero failures. | `backend/src/tests/`, `frontend/src/tests/` |
+| **Automated Testing** | Unit, integration, and concurrency race tests | 148 automated tests (124 backend, 24 frontend) passing with zero failures. | `backend/src/tests/`, `frontend/src/tests/` |
 
 ---
 
-## 12. Project Documentation Links
+## 11. Project Documentation Links
 
-- **Database ER Diagram & Data Dictionary:** [docs/ER_DIAGRAM.md](file:///D:/Bus%20Booking/docs/ER_DIAGRAM.md)
-- **Technical Architecture & Concurrency Specification:** [docs/TECHNICAL_REPORT.md](file:///D:/Bus%20Booking/docs/TECHNICAL_REPORT.md)
-- **UI Research & Design System Specification:** [docs/UI_DESIGN_SYSTEM.md](file:///D:/Bus%20Booking/docs/UI_DESIGN_SYSTEM.md)
-- **OpenAPI 3.0 Specification:** [backend/src/docs/openapi.json](file:///D:/Bus%20Booking/backend/src/docs/openapi.json)
+- **Database ER Diagram & Data Dictionary:** [docs/ER_DIAGRAM.md](docs/ER_DIAGRAM.md)
+- **Technical Architecture & Concurrency Specification:** [docs/TECHNICAL_REPORT.md](docs/TECHNICAL_REPORT.md)
+- **UI Research & Design System Specification:** [docs/UI_DESIGN_SYSTEM.md](docs/UI_DESIGN_SYSTEM.md)
+- **OpenAPI 3.0 Specification:** [backend/src/docs/openapi.json](backend/src/docs/openapi.json)
 
 ---
 
