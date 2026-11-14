@@ -118,10 +118,10 @@ export default function HomePage() {
             <CouponHeroCard />
           </div>
 
-          {/* Hero Heading: Positioned near the bottom-left of the hero image, right above the search box */}
-          <div className="absolute bottom-11 sm:bottom-12 md:bottom-14 lg:bottom-16 left-0 right-0 z-20 pointer-events-none">
+          {/* Hero Heading: Compact typography positioned right above the search box */}
+          <div className="absolute bottom-32 sm:bottom-36 md:bottom-40 lg:bottom-44 left-0 right-0 z-20 pointer-events-none">
             <div className="max-w-6xl mx-auto px-4">
-              <h1 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]">
+              <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-extrabold tracking-tight text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]">
                 Book bus tickets online
               </h1>
             </div>
@@ -133,8 +133,8 @@ export default function HomePage() {
           <CouponHeroCard />
         </div>
 
-        {/* Prominent Search Widget - Positioned so 75% of box height sits below the hero image bottom edge */}
-        <div className="relative z-30 max-w-6xl mx-auto px-4 -mt-7 sm:-mt-8 md:-mt-9 lg:-mt-10">
+        {/* Prominent Search Widget - Positioned at 50% across the bottom edge of the hero image */}
+        <div className="relative z-30 max-w-6xl mx-auto px-4 -mt-16 sm:-mt-18 md:-mt-20 lg:-mt-20">
           <HeroSearchWidget cities={cities} />
         </div>
 
