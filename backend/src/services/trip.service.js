@@ -366,6 +366,114 @@ function getTripSearchOrderBy(sortBy) {
 }
 
 /**
+ * Ensures daily morning, afternoon, and overnight scheduled trips with live available seats
+ * exist for the requested corridor on the given travel date.
+ */
+async function ensureDailyTripsForRoute(sourceCity, destinationCity, dateStr) {
+  if (!sourceCity || !destinationCity) return;
+
+  try {
+    const route = await prisma.route.findFirst({
+      where: {
+        isActive: true,
+        sourceCity: { contains: sourceCity, mode: 'insensitive' },
+        destinationCity: { contains: destinationCity, mode: 'insensitive' },
+      },
+    });
+
+    if (!route) return;
+
+    const targetDate = dateStr ? new Date(`${dateStr}T00:00:00.000Z`) : new Date();
+    if (isNaN(targetDate.getTime())) return;
+
+    const y = targetDate.getUTCFullYear();
+    const m = String(targetDate.getUTCMonth() + 1).padStart(2, '0');
+    const d = String(targetDate.getUTCDate()).padStart(2, '0');
+    const dayPrefix = `${y}-${m}-${d}`;
+
+    const dayStart = new Date(`${dayPrefix}T00:00:00.000Z`);
+    const dayEnd = new Date(`${dayPrefix}T23:59:59.999Z`);
+
+    const existingCount = await prisma.trip.count({
+      where: {
+        routeId: route.id,
+        departureTime: { gte: dayStart, lte: dayEnd },
+      },
+    });
+
+    if (existingCount >= 2) return;
+
+    const buses = await prisma.bus.findMany({
+      where: { isActive: true },
+      include: { seats: true },
+      take: 8,
+    });
+
+    if (!buses.length) return;
+
+    const baseFares = {
+      'Delhi-Jaipur': 599, 'Jaipur-Delhi': 599,
+      'Mumbai-Pune': 399, 'Pune-Mumbai': 399,
+      'Bangalore-Chennai': 649, 'Chennai-Bangalore': 649,
+      'Delhi-Chandigarh': 499, 'Chandigarh-Delhi': 499,
+      'Jaipur-Agra': 449, 'Agra-Jaipur': 449,
+      'Udaipur-Ahmedabad': 499, 'Ahmedabad-Udaipur': 499,
+      'Ahmedabad-Mumbai': 899, 'Mumbai-Ahmedabad': 899,
+      'Delhi-Lucknow': 899, 'Lucknow-Delhi': 899,
+      'Delhi-Manali': 1299, 'Manali-Delhi': 1299,
+      'Pune-Goa': 999, 'Goa-Pune': 999,
+      'Bangalore-Hyderabad': 1099, 'Hyderabad-Bangalore': 1099,
+      'Agra-Delhi': 462, 'Delhi-Agra': 462,
+      'Mumbai-Goa': 1199, 'Goa-Mumbai': 1199,
+      'Ahmedabad-Udaipur': 572, 'Udaipur-Ahmedabad': 572,
+    };
+
+    const routeKey = `${route.sourceCity}-${route.destinationCity}`;
+    const baseFare = baseFares[routeKey] || Math.round(Number(route.distanceKm) * 2.2);
+
+    const schedules = [
+      { hour: 7, minute: 30, busOffset: 0 },
+      { hour: 14, minute: 15, busOffset: 1 },
+      { hour: 21, minute: 45, busOffset: 2 },
+    ];
+
+    const now = new Date();
+
+    for (let idx = 0; idx < schedules.length; idx++) {
+      const sched = schedules[idx];
+      const bus = buses[sched.busOffset % buses.length];
+      const departureTime = new Date(dayStart.getTime());
+      departureTime.setUTCHours(sched.hour, sched.minute, 0, 0);
+
+      const arrivalTime = new Date(departureTime.getTime() + route.estimatedMinutes * 60 * 1000);
+
+      let status = 'SCHEDULED';
+      if (departureTime < now) {
+        status = arrivalTime < now ? 'COMPLETED' : 'RUNNING';
+      }
+
+      const trip = await prisma.trip.create({
+        data: {
+          routeId: route.id,
+          busId: bus.id,
+          departureTime,
+          arrivalTime,
+          baseFare,
+          status,
+        },
+      });
+
+      const tripSeats = buildTripSeatInventory(trip.id, bus.seats, baseFare);
+      if (tripSeats.length > 0) {
+        await prisma.tripSeat.createMany({ data: tripSeats });
+      }
+    }
+  } catch (err) {
+    console.error('[TripService] Failed to auto-schedule daily trips:', err?.message || err);
+  }
+}
+
+/**
  * Public trip search supporting Indian city-pair queries, travel date, INR price bounds,
  * bus type, operator, departure time windows, and pagination.
  */
@@ -415,7 +523,7 @@ async function searchPublicTrips(query) {
   const skip = departureWindow ? 0 : (page - 1) * limit;
   const take = departureWindow ? undefined : limit;
 
-  const [rawTrips, dbTotal] = await Promise.all([
+  let [rawTrips, dbTotal] = await Promise.all([
     prisma.trip.findMany({
       where,
       skip,
@@ -425,6 +533,21 @@ async function searchPublicTrips(query) {
     }),
     departureWindow ? Promise.resolve(0) : prisma.trip.count({ where }),
   ]);
+
+  // If no scheduled trips found for a specific city-pair query, auto-schedule daily trips for that route
+  if (rawTrips.length === 0 && query.sourceCity && query.destinationCity) {
+    await ensureDailyTripsForRoute(query.sourceCity, query.destinationCity, query.date);
+    [rawTrips, dbTotal] = await Promise.all([
+      prisma.trip.findMany({
+        where,
+        skip,
+        take,
+        orderBy,
+        include,
+      }),
+      departureWindow ? Promise.resolve(0) : prisma.trip.count({ where }),
+    ]);
+  }
 
   const formattedAll = rawTrips
     .filter((trip) => matchesDepartureWindow(trip.departureTime, departureWindow))

@@ -465,8 +465,8 @@ async function main() {
   await prisma.routeStop.createMany({ data: routeStopsData });
   console.log(`[Seed] Seeded ${routes.length} routes with ${routeStopsData.length} route stops.`);
 
-  // 8. Seed 250 Scheduled Trips across past 30 days & upcoming 14 days
-  console.log('[Seed] Seeding 250 Trips with live TripSeat inventory...');
+  // 8. Seed Daily Morning & Overnight Trips across past 7 days & upcoming 14 days for all routes
+  console.log('[Seed] Seeding daily trips across all corridors with live TripSeat inventory...');
   const baseFares = {
     'Delhi-Jaipur': 599, 'Jaipur-Delhi': 599,
     'Mumbai-Pune': 399, 'Pune-Mumbai': 399,
@@ -479,46 +479,53 @@ async function main() {
     'Delhi-Manali': 1299, 'Manali-Delhi': 1299,
     'Pune-Goa': 999, 'Goa-Pune': 999,
     'Bangalore-Hyderabad': 1099, 'Hyderabad-Bangalore': 1099,
+    'Agra-Delhi': 462, 'Delhi-Agra': 462,
+    'Mumbai-Goa': 1199, 'Goa-Mumbai': 1199,
   };
 
   const trips = [];
   const now = new Date();
-  const departureHours = [6, 8, 11, 14, 17, 20, 22, 23];
+  const dailySlots = [
+    { hour: 7, minute: 30, busOffset: 0 },
+    { hour: 14, minute: 15, busOffset: 1 },
+    { hour: 21, minute: 45, busOffset: 2 },
+  ];
 
-  for (let i = 1; i <= 250; i++) {
-    const route = routes[(i - 1) % routes.length];
-    const bus = buses[(i - 1) % buses.length];
+  let busCycle = 0;
+  for (let dayOffset = -7; dayOffset <= 14; dayOffset++) {
+    for (let rIdx = 0; rIdx < routes.length; rIdx++) {
+      const route = routes[rIdx];
+      const routeKey = `${route.sourceCity}-${route.destinationCity}`;
+      const baseFare = baseFares[routeKey] || Math.round(Number(route.distanceKm) * 2.2);
 
-    // Day offset: -25 to +14 days relative to now
-    const dayOffset = -25 + (i % 40);
-    const depHour = departureHours[i % departureHours.length];
-    const depMinute = (i * 15) % 60;
+      for (const slot of dailySlots) {
+        const bus = buses[busCycle % buses.length];
+        busCycle++;
 
-    const departureTime = new Date(now.getTime());
-    departureTime.setDate(now.getDate() + dayOffset);
-    departureTime.setHours(depHour, depMinute, 0, 0);
+        const departureTime = new Date(now.getTime());
+        departureTime.setDate(now.getDate() + dayOffset);
+        departureTime.setHours(slot.hour, slot.minute, 0, 0);
 
-    const arrivalTime = new Date(departureTime.getTime() + route.estimatedMinutes * 60 * 1000);
+        const arrivalTime = new Date(departureTime.getTime() + route.estimatedMinutes * 60 * 1000);
 
-    const routeKey = `${route.sourceCity}-${route.destinationCity}`;
-    const baseFare = baseFares[routeKey] || Math.round(Number(route.distanceKm) * 2.2);
+        let status = 'SCHEDULED';
+        if (departureTime < now) {
+          status = arrivalTime < now ? 'COMPLETED' : 'RUNNING';
+        }
 
-    let status = 'SCHEDULED';
-    if (departureTime < now) {
-      status = arrivalTime < now ? 'COMPLETED' : 'RUNNING';
+        const trip = await prisma.trip.create({
+          data: {
+            routeId: route.id,
+            busId: bus.id,
+            departureTime,
+            arrivalTime,
+            baseFare,
+            status,
+          },
+        });
+        trips.push({ trip, bus, route, baseFare, isPast: departureTime < now });
+      }
     }
-
-    const trip = await prisma.trip.create({
-      data: {
-        routeId: route.id,
-        busId: bus.id,
-        departureTime,
-        arrivalTime,
-        baseFare,
-        status,
-      },
-    });
-    trips.push({ trip, bus, route, baseFare, isPast: departureTime < now });
   }
 
   // Pre-fetch all seats per bus
