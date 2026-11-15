@@ -3,16 +3,32 @@ const config = require('./env');
 
 let prismaInstance = null;
 
-function createAdapter(connectionString) {
+function sanitizeConnectionString(rawUrl) {
+  if (!rawUrl) return rawUrl;
+  try {
+    const url = new URL(rawUrl);
+    // Remove channel_binding because WebSocket proxying does not support SCRAM channel binding
+    url.searchParams.delete('channel_binding');
+    return url.toString();
+  } catch {
+    return rawUrl;
+  }
+}
+
+function createAdapter(rawConnectionString) {
+  if (!rawConnectionString) return null;
+
+  const connectionString = sanitizeConnectionString(rawConnectionString);
+
   // If connecting to Neon or running in serverless edge, use Neon WebSocket/HTTP adapter
-  if (connectionString && connectionString.includes('neon.tech')) {
+  if (connectionString.includes('neon.tech')) {
     try {
       const { Pool } = require('@neondatabase/serverless');
       const { PrismaNeon } = require('@prisma/adapter-neon');
       const pool = new Pool({ connectionString });
       return new PrismaNeon(pool);
     } catch (e) {
-      // Fallback to standard PrismaPg
+      // Fallback to PrismaPg
     }
   }
 
