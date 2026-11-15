@@ -44,7 +44,19 @@ function createAdapter(rawConnectionString) {
 
 function getPrisma() {
   const activeUrl = config.databaseUrl;
-  // Recreate client if the active URL changes (e.g. injected dynamically by Cloudflare fetch handler)
+  const isEdge = typeof globalThis !== 'undefined' && Boolean(globalThis.__CF_ENV__);
+
+  // In Cloudflare edge isolates, persistent WebSockets are dropped between request lifecycles.
+  // Creating the adapter per request guarantees fresh, clean network streams without "Connection terminated".
+  if (isEdge) {
+    const adapter = createAdapter(activeUrl);
+    return new PrismaClient({
+      adapter,
+      log: ['error'],
+    });
+  }
+
+  // In standard local Node.js environment, reuse the client instance
   if (!prismaInstance || currentDbUrl !== activeUrl) {
     currentDbUrl = activeUrl;
     const adapter = createAdapter(activeUrl);
