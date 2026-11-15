@@ -1,12 +1,29 @@
 const { PrismaClient } = require('@prisma/client');
-const { PrismaPg } = require('@prisma/adapter-pg');
 const config = require('./env');
 
 let prismaInstance = null;
 
+function createAdapter(connectionString) {
+  // If connecting to Neon or running in serverless edge, use Neon WebSocket/HTTP adapter
+  if (connectionString && connectionString.includes('neon.tech')) {
+    try {
+      const { Pool } = require('@neondatabase/serverless');
+      const { PrismaNeon } = require('@prisma/adapter-neon');
+      const pool = new Pool({ connectionString });
+      return new PrismaNeon(pool);
+    } catch (e) {
+      // Fallback to standard PrismaPg
+    }
+  }
+
+  // Standard pg driver adapter for local PostgreSQL
+  const { PrismaPg } = require('@prisma/adapter-pg');
+  return new PrismaPg({ connectionString });
+}
+
 function getPrisma() {
   if (!prismaInstance) {
-    const adapter = new PrismaPg({ connectionString: config.databaseUrl });
+    const adapter = createAdapter(config.databaseUrl);
     prismaInstance = new PrismaClient({
       adapter,
       log: config.nodeEnv === 'development' ? ['warn', 'error'] : ['error'],
