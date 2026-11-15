@@ -417,7 +417,6 @@ async function ensureDailyTripsForRoute(sourceCity, destinationCity, dateStr) {
       'Bangalore-Chennai': 649, 'Chennai-Bangalore': 649,
       'Delhi-Chandigarh': 499, 'Chandigarh-Delhi': 499,
       'Jaipur-Agra': 449, 'Agra-Jaipur': 449,
-      'Udaipur-Ahmedabad': 499, 'Ahmedabad-Udaipur': 499,
       'Ahmedabad-Mumbai': 899, 'Mumbai-Ahmedabad': 899,
       'Delhi-Lucknow': 899, 'Lucknow-Delhi': 899,
       'Delhi-Manali': 1299, 'Manali-Delhi': 1299,
