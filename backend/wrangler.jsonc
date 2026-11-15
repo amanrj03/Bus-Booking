@@ -2,11 +2,8 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "gobus-backend",
   "main": "src/worker.js",
-  "compatibility_date": "2026-08-04",
+  "compatibility_date": "2026-11-15",
   "compatibility_flags": [
     "nodejs_compat"
-  ],
-  "vars": {
-    "NODE_ENV": "production"
-  }
+  ]
 }
