@@ -29,10 +29,20 @@ router.get('/db', async (req, res) => {
   const dbHealth = await checkDatabaseConnection();
   const seedMetrics = await getDatabaseSeedMetrics();
 
+  const rawUrl = config.databaseUrl || '';
+  const maskedHost = rawUrl.includes('@')
+    ? rawUrl.split('@')[1].split('/')[0]
+    : 'not-set';
+
   const payload = {
     connected: dbHealth.isConnected,
     latencyMs: dbHealth.latencyMs || null,
     error: dbHealth.error || null,
+    diagnostics: {
+      isEdgeRuntime: typeof globalThis !== 'undefined' && Boolean(globalThis.__CF_ENV__),
+      boundKeys: typeof globalThis !== 'undefined' && globalThis.__CF_ENV__ ? Object.keys(globalThis.__CF_ENV__) : [],
+      activeDatabaseHost: maskedHost,
+    },
     seedMetrics: seedMetrics.counts || null,
     isSeeded: seedMetrics.isSeeded,
   };

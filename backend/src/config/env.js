@@ -10,13 +10,10 @@ if (typeof __dirname !== 'undefined') {
   }
 }
 
-// In Cloudflare Workers, bindings are globally accessible via cloudflare:workers
+// In Cloudflare Workers, bindings are accessible via globalThis.__CF_ENV__ or process.env
 function getEnvBinding(key) {
-  try {
-    const { env } = require('cloudflare:workers');
-    if (env && env[key]) return env[key];
-  } catch {
-    // Not running inside Cloudflare Workers
+  if (typeof globalThis !== 'undefined' && globalThis.__CF_ENV__ && globalThis.__CF_ENV__[key]) {
+    return globalThis.__CF_ENV__[key];
   }
   return process.env[key];
 }

@@ -22,14 +22,14 @@ function createAdapter(rawConnectionString) {
   const connectionString = sanitizeConnectionString(rawConnectionString);
 
   // If connecting to Neon or running in serverless edge, use Neon WebSocket/HTTP adapter
-  if (connectionString.includes('neon.tech')) {
+  if (connectionString.includes('neon.tech') || (typeof globalThis !== 'undefined' && globalThis.__CF_ENV__)) {
     try {
       const { Pool } = require('@neondatabase/serverless');
       const { PrismaNeon } = require('@prisma/adapter-neon');
       const pool = new Pool({ connectionString });
       return new PrismaNeon(pool);
     } catch (e) {
-      // Fallback to PrismaPg
+      console.error('[PrismaAdapter] Error creating PrismaNeon adapter:', e.message);
     }
   }
 
