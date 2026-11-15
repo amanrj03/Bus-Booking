@@ -12,7 +12,7 @@ import {
 } from '@heroicons/react/24/solid';
 import { SERVICE_ITEMS } from '../../config/servicesConfig';
 
-export default function Navbar({ user = null, onOpenAuth = () => {}, onLogout = () => {} }) {
+export default function Navbar({ user = null, onOpenAuth = () => { }, onLogout = () => { } }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
   const servicesDropdownRef = useRef(null);
@@ -65,8 +65,7 @@ export default function Navbar({ user = null, onOpenAuth = () => {}, onLogout = 
               to="/"
               end
               className={({ isActive }) =>
-                `transition-colors hover:text-black py-1 ${
-                  isActive ? 'text-black underline underline-offset-4' : 'text-[#131b26]'
+                `transition-colors hover:text-black py-1 ${isActive ? 'text-black underline underline-offset-4' : 'text-[#131b26]'
                 }`
               }
             >
@@ -78,9 +77,8 @@ export default function Navbar({ user = null, onOpenAuth = () => {}, onLogout = 
               <button
                 type="button"
                 onClick={() => setServicesOpen((prev) => !prev)}
-                className={`flex items-center gap-1 py-1 font-bold transition-colors hover:text-black cursor-pointer ${
-                  isServicesActive ? 'text-black underline underline-offset-4' : 'text-[#131b26]'
-                }`}
+                className={`flex items-center gap-1 py-1 font-bold transition-colors hover:text-black cursor-pointer ${isServicesActive ? 'text-black underline underline-offset-4' : 'text-[#131b26]'
+                  }`}
                 aria-expanded={servicesOpen}
                 aria-haspopup="true"
               >
@@ -118,8 +116,7 @@ export default function Navbar({ user = null, onOpenAuth = () => {}, onLogout = 
             <NavLink
               to="/my-bookings"
               className={({ isActive }) =>
-                `transition-colors hover:text-black py-1 ${
-                  isActive ? 'text-black underline underline-offset-4' : 'text-[#131b26]'
+                `transition-colors hover:text-black py-1 ${isActive ? 'text-black underline underline-offset-4' : 'text-[#131b26]'
                 }`
               }
             >
@@ -130,8 +127,7 @@ export default function Navbar({ user = null, onOpenAuth = () => {}, onLogout = 
             <NavLink
               to="/services/help"
               className={({ isActive }) =>
-                `transition-colors hover:text-black py-1 ${
-                  isActive ? 'text-black underline underline-offset-4' : 'text-[#131b26]'
+                `transition-colors hover:text-black py-1 ${isActive ? 'text-black underline underline-offset-4' : 'text-[#131b26]'
                 }`
               }
             >
@@ -150,14 +146,8 @@ export default function Navbar({ user = null, onOpenAuth = () => {}, onLogout = 
           </nav>
         </div>
 
-        {/* Right Side: Language & Auth / User Profile */}
+        {/* Right Side: Auth / User Profile */}
         <div className="flex items-center gap-3.5 text-xs font-semibold">
-          {/* Language / Region Indicator */}
-          <div className="hidden sm:flex items-center gap-1.5 cursor-default bg-black/5 hover:bg-black/10 px-2.5 py-1 rounded-full transition-colors">
-            <span className="text-sm">🇮🇳</span>
-            <span className="font-bold text-[11px] text-gray-900">EN</span>
-          </div>
-
           {/* Admin / Operator Portal Link */}
           {user && (user.role === 'ADMIN' || user.role === 'OPERATOR') && (
             <NavLink

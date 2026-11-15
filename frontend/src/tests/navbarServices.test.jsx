@@ -11,7 +11,7 @@ describe('Navbar and Services Suite', () => {
   });
 
   describe('Navbar Component', () => {
-    it('renders Plan Your Journey without chevron and removes Search Buses', () => {
+    it('renders Plan Your Journey without chevron and removes Search Buses and IN/EN selector', () => {
       render(
         <MemoryRouter>
           <Navbar />
@@ -25,6 +25,9 @@ describe('Navbar and Services Suite', () => {
       // Verify "Search Buses" is completely absent
       const searchBusesLink = screen.queryByText('Search Buses');
       expect(searchBusesLink).toBeNull();
+
+      // Verify IN / EN indicator is removed from the header
+      expect(screen.queryByText('EN')).toBeNull();
     });
 
     it('renders Service dropdown with exact matching menu items when clicked', () => {
