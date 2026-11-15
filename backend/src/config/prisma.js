@@ -21,16 +21,16 @@ function createAdapter(rawConnectionString) {
 
   const connectionString = sanitizeConnectionString(rawConnectionString);
 
-  // If connecting to Neon or running in serverless edge, use Neon WebSocket adapter
+  // If connecting to Neon or running in serverless edge, use Neon adapter
   if (connectionString.includes('neon.tech') || (typeof globalThis !== 'undefined' && globalThis.__CF_ENV__)) {
-    if (typeof WebSocket !== 'undefined') {
-      try {
-        const { neonConfig } = require('@neondatabase/serverless');
-        if (!neonConfig.webSocketConstructor) {
-          neonConfig.webSocketConstructor = WebSocket;
-        }
-      } catch {}
-    }
+    try {
+      const { neonConfig } = require('@neondatabase/serverless');
+      // Enable HTTP fetch pooling to prevent WebSocket drops and socket termination in Cloudflare isolates
+      neonConfig.poolQueryViaFetch = true;
+      if (typeof WebSocket !== 'undefined' && !neonConfig.webSocketConstructor) {
+        neonConfig.webSocketConstructor = WebSocket;
+      }
+    } catch {}
 
     const { PrismaNeon } = require('@prisma/adapter-neon');
     // In Prisma 7, PrismaNeon accepts the connection config object { connectionString } directly
