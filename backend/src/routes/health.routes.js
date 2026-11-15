@@ -17,6 +17,7 @@ router.get('/', async (req, res) => {
     database: {
       connected: dbHealth.isConnected,
       latencyMs: dbHealth.latencyMs || null,
+      error: dbHealth.error || null,
       message: dbHealth.isConnected ? 'Database is healthy' : 'Database disconnected or awaiting credentials',
     },
   };

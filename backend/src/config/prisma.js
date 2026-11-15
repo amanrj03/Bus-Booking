@@ -2,6 +2,7 @@ const { PrismaClient } = require('@prisma/client');
 const config = require('./env');
 
 let prismaInstance = null;
+let currentDbUrl = null;
 
 function sanitizeConnectionString(rawUrl) {
   if (!rawUrl) return rawUrl;
@@ -38,8 +39,11 @@ function createAdapter(rawConnectionString) {
 }
 
 function getPrisma() {
-  if (!prismaInstance) {
-    const adapter = createAdapter(config.databaseUrl);
+  const activeUrl = config.databaseUrl;
+  // Recreate client if the active URL changes (e.g. injected dynamically by Cloudflare fetch handler)
+  if (!prismaInstance || currentDbUrl !== activeUrl) {
+    currentDbUrl = activeUrl;
+    const adapter = createAdapter(activeUrl);
     prismaInstance = new PrismaClient({
       adapter,
       log: config.nodeEnv === 'development' ? ['warn', 'error'] : ['error'],
