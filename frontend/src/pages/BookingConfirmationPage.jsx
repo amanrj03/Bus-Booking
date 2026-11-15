@@ -14,6 +14,7 @@ import {
 import { Button, Card, Alert } from '../components/ui';
 import ETicketCard from '../components/ticket/ETicketCard';
 import { fetchBookingByPnr } from '../services/booking.service';
+import { generateTicketPDF } from '../utils/pdfTicketGenerator';
 
 function loadCachedBooking(pnr, locationState) {
   if (locationState?.booking?.pnr === pnr) {
@@ -48,6 +49,7 @@ export default function BookingConfirmationPage() {
   const [loading, setLoading] = useState(() => !booking?.trip?.route);
   const [error, setError] = useState('');
   const [copiedPnr, setCopiedPnr] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   useEffect(() => {
     // If we don't have complete booking details with trip route/bus, hydrate from API
@@ -94,6 +96,19 @@ export default function BookingConfirmationPage() {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!booking) return;
+    try {
+      setDownloadingPdf(true);
+      await generateTicketPDF(booking);
+    } catch (err) {
+      console.error('Failed to generate PDF ticket:', err);
+      window.print();
+    } finally {
+      setDownloadingPdf(false);
+    }
   };
 
   if (loading) {
@@ -182,7 +197,8 @@ export default function BookingConfirmationPage() {
               </Button>
               <Button
                 variant="outline"
-                onClick={handlePrint}
+                onClick={handleDownloadPDF}
+                loading={downloadingPdf}
                 className="inline-flex items-center gap-2 text-xs font-bold bg-white text-gray-900 hover:bg-gray-100 cursor-pointer"
               >
                 <ArrowDownTrayIcon className="w-4 h-4" />

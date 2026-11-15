@@ -119,7 +119,7 @@ export default function HomePage() {
           </div>
 
           {/* Hero Heading: Compact typography positioned right above the search box */}
-          <div className="absolute bottom-32 sm:bottom-36 md:bottom-40 lg:bottom-44 left-0 right-0 z-20 pointer-events-none">
+          <div className="absolute bottom-32 sm:bottom-20 md:bottom-24 lg:bottom-24 left-0 right-0 z-20 pointer-events-none">
             <div className="max-w-6xl mx-auto px-4">
               <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-extrabold tracking-tight text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.85)]">
                 Book bus tickets online

@@ -110,7 +110,37 @@ export default function ETicketCard({ booking }) {
       </div>
 
       {/* Main Ticket Body */}
-      <div className="p-6 sm:p-8 space-y-8">
+      <div className="p-6 sm:p-8 space-y-6 sm:space-y-8">
+        {/* HIGH-VISIBILITY SEAT CALLOUT (For elderly passengers & children to spot their seat instantly) */}
+        <div className="bg-gradient-to-r from-[#73d200]/15 via-[#73d200]/25 to-[#73d200]/15 border-2 border-[#73d200] rounded-2xl p-5 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-emerald-900 bg-white/90 px-3 py-1 rounded-md border border-[#73d200]/50 shadow-xs">
+                <TicketIcon className="w-4 h-4 text-[#65b800]" />
+                YOUR RESERVED SEAT(S)
+              </span>
+              <div className="text-4xl sm:text-5xl font-black text-gray-950 tracking-tight">
+                {passengers.map((p) => p.seatNumber).join(', ') || '1A'}
+              </div>
+              <p className="text-xs font-bold text-gray-700">
+                Deck: Lower / Main Deck • {BUS_TYPE_LABELS[bus.busType] || bus.busType || 'Deluxe Intercity Coach'}
+              </p>
+            </div>
+
+            <div className="sm:text-right border-t sm:border-t-0 sm:border-l border-gray-300/80 pt-3 sm:pt-0 sm:pl-6 space-y-1">
+              <div className="text-[11px] uppercase font-bold text-gray-600">
+                Coach Vehicle Number
+              </div>
+              <div className="text-xl sm:text-2xl font-black font-mono text-gray-900">
+                {bus.busNumber || 'COACH-EXP'}
+              </div>
+              <div className="text-xs text-gray-600 font-semibold">
+                Operated by: {operator.companyName || operator.name || 'Verified Carrier'}
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Bus & Coach Specification Banner */}
         <div className="flex flex-wrap items-center justify-between gap-3 bg-gray-50 border border-gray-200/80 rounded-xl px-4 py-3">
           <div className="flex flex-wrap items-center gap-3">
@@ -140,70 +170,73 @@ export default function ETicketCard({ booking }) {
         </div>
 
         {/* Journey Timeline Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-12 items-center gap-6 bg-white p-4 rounded-xl border border-gray-100">
+        <div className="grid grid-cols-1 md:grid-cols-12 items-center gap-6 bg-white p-5 rounded-2xl border border-gray-200 shadow-xs">
           {/* Departure */}
-          <div className="md:col-span-5 space-y-1">
-            <div className="text-[11px] font-black uppercase tracking-wider text-gray-400 flex items-center gap-1">
-              <ClockIcon className="w-3.5 h-3.5 text-[#73d200]" />
-              Departure
+          <div className="md:col-span-5 space-y-1.5">
+            <div className="text-[11px] font-black uppercase tracking-wider text-emerald-800 flex items-center gap-1">
+              <ClockIcon className="w-4 h-4 text-[#73d200]" />
+              BOARDING (DEPARTURE)
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-gray-900">
+            <div className="text-3xl sm:text-4xl font-black text-gray-900">
               {formatClockTime(trip.departureTime)}
             </div>
-            <div className="text-sm font-bold text-gray-800">
+            <div className="text-base font-black text-gray-900">
               {route.sourceCity || 'Source Station'}
             </div>
-            <div className="text-xs text-gray-500 flex items-start gap-1">
-              <MapPinIcon className="w-3.5 h-3.5 text-gray-400 shrink-0 mt-0.5" />
+            <div className="text-xs text-gray-600 flex items-start gap-1 font-medium">
+              <MapPinIcon className="w-4 h-4 text-gray-500 shrink-0 mt-0.5" />
               <span>
                 {boardingStop?.name
                   ? `${boardingStop.name}${boardingStop.landmark ? ` (${boardingStop.landmark})` : ''}`
                   : 'Main Intercity Terminal'}
               </span>
             </div>
-            <div className="text-[11px] text-gray-400">
+            <div className="text-xs text-gray-500 font-medium">
               {formatDateLong(trip.departureTime)}
+            </div>
+            <div className="inline-block bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-bold px-2.5 py-1 rounded-md mt-1">
+              ⚠️ Arrive by {formatClockTime(new Date(new Date(trip.departureTime || Date.now()).getTime() - 15 * 60000))} (15m before)
             </div>
           </div>
 
           {/* Duration & Connector */}
           <div className="md:col-span-2 flex flex-col items-center justify-center text-center py-2 md:py-0">
-            <div className="text-xs font-bold text-gray-500 mb-1">
+            <div className="text-xs font-bold text-gray-600 mb-1">
               {formatDuration(route.estimatedMinutes || 360)}
             </div>
             <div className="w-full flex items-center gap-1">
-              <div className="w-2.5 h-2.5 rounded-full bg-[#73d200] shrink-0" />
+              <div className="w-3 h-3 rounded-full bg-[#73d200] shrink-0" />
               <div className="flex-1 border-t-2 border-dashed border-gray-300" />
               <TruckIcon className="w-4 h-4 text-gray-400 shrink-0" />
               <div className="flex-1 border-t-2 border-dashed border-gray-300" />
-              <div className="w-2.5 h-2.5 rounded-full bg-gray-900 shrink-0" />
+              <div className="w-3 h-3 rounded-full bg-gray-900 shrink-0" />
             </div>
-            <div className="text-[10px] text-gray-400 mt-1 uppercase font-semibold">
-              Direct Service
+            <div className="text-[10px] text-gray-500 mt-1 uppercase font-bold">
+              Direct Non-Stop
             </div>
           </div>
 
           {/* Arrival */}
-          <div className="md:col-span-5 md:text-right space-y-1">
-            <div className="text-[11px] font-black uppercase tracking-wider text-gray-400 flex items-center md:justify-end gap-1">
-              <ClockIcon className="w-3.5 h-3.5 text-gray-900" />
-              Arrival (Estimated)
+          <div className="md:col-span-5 md:text-right space-y-1.5">
+            <div className="text-[11px] font-black uppercase tracking-wider text-gray-500 flex items-center md:justify-end gap-1">
+              <ClockIcon className="w-4 h-4 text-gray-900" />
+              ESTIMATED ARRIVAL
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-gray-900">
+            <div className="text-3xl sm:text-4xl font-black text-gray-900">
               {formatClockTime(trip.arrivalTime)}
             </div>
-            <div className="text-sm font-bold text-gray-800">
+            <div className="text-base font-black text-gray-900">
               {route.destinationCity || 'Destination Station'}
             </div>
-            <div className="text-xs text-gray-500 flex items-start md:justify-end gap-1">
-              <MapPinIcon className="w-3.5 h-3.5 text-gray-400 shrink-0 mt-0.5" />
+            <div className="text-xs text-gray-600 flex items-start md:justify-end gap-1 font-medium">
+              <MapPinIcon className="w-4 h-4 text-gray-500 shrink-0 mt-0.5" />
               <span>
                 {droppingStop?.name
                   ? `${droppingStop.name}${droppingStop.landmark ? ` (${droppingStop.landmark})` : ''}`
                   : 'Central Bus Terminal'}
               </span>
             </div>
-            <div className="text-[11px] text-gray-400">
+            <div className="text-xs text-gray-500 font-medium">
               {formatDateLong(trip.arrivalTime)}
             </div>
           </div>
@@ -259,41 +292,59 @@ export default function ETicketCard({ booking }) {
               <UserIcon className="w-4 h-4 text-[#73d200]" />
               Passenger Manifest & Reserved Seats ({passengers.length})
             </h4>
-            <span className="text-xs text-gray-500 font-semibold">Seat Count: {passengers.length}</span>
+            <span className="text-xs text-gray-600 font-bold bg-gray-100 px-2.5 py-1 rounded-md">
+              Total Passengers: {passengers.length}
+            </span>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-gray-200">
+          <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-xs">
             <table className="w-full text-left border-collapse text-xs">
-              <thead className="bg-gray-50 text-gray-500 font-bold uppercase text-[10px] border-b border-gray-200">
+              <thead className="bg-gray-100 text-gray-600 font-black uppercase text-[10px] border-b border-gray-200">
                 <tr>
                   <th className="py-3 px-4">#</th>
-                  <th className="py-3 px-4">Passenger Name</th>
-                  <th className="py-3 px-4">Age / Gender</th>
-                  <th className="py-3 px-4">Seat No.</th>
-                  <th className="py-3 px-4 text-right">Status</th>
+                  <th className="py-3 px-4">Passenger Full Name</th>
+                  <th className="py-3 px-4">Age &amp; Category</th>
+                  <th className="py-3 px-4">Your Seat Number</th>
+                  <th className="py-3 px-4 text-right">Booking Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-gray-800">
                 {passengers.map((p, idx) => (
                   <tr key={p.id || idx} className="hover:bg-gray-50/50">
-                    <td className="py-3 px-4 font-mono font-semibold text-gray-400">{idx + 1}</td>
-                    <td className="py-3 px-4 font-bold text-gray-900">{p.fullName}</td>
-                    <td className="py-3 px-4 text-gray-600">
-                      {p.age} yrs • {p.gender}
+                    <td className="py-3.5 px-4 font-mono font-bold text-gray-400">{idx + 1}</td>
+                    <td className="py-3.5 px-4 font-black text-sm text-gray-900">{p.fullName}</td>
+                    <td className="py-3.5 px-4 text-gray-600 font-medium">
+                      {p.age} yrs • {p.gender} {Number(p.age) >= 60 ? '• Senior' : Number(p.age) <= 12 ? '• Child' : ''}
                     </td>
-                    <td className="py-3 px-4">
-                      <span className="inline-flex items-center gap-1 font-mono font-black text-gray-900 bg-[#73d200]/20 px-2 py-0.5 rounded text-xs">
-                        <TicketIcon className="w-3 h-3 text-[#65b800]" />
-                        {p.seatNumber}
+                    <td className="py-3.5 px-4">
+                      <span className="inline-flex items-center gap-1.5 font-mono font-black text-sm text-gray-950 bg-[#73d200]/30 px-3 py-1 rounded-md border border-[#73d200]/70 shadow-xs">
+                        <TicketIcon className="w-3.5 h-3.5 text-[#65b800]" />
+                        SEAT {p.seatNumber}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-right">
+                    <td className="py-3.5 px-4 text-right">
                       <Badge variant="success">CONFIRMED</Badge>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+
+        {/* 24x7 Platform Assistance & Emergency Helpline Banner */}
+        <div className="bg-slate-900 text-white rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-[#73d200] text-gray-900 flex items-center justify-center shrink-0 shadow">
+              <PhoneIcon className="w-5 h-5 text-gray-900" />
+            </div>
+            <div>
+              <div className="text-xs font-bold text-gray-300">Need assistance at the boarding station?</div>
+              <div className="text-sm font-black text-white">24x7 Helpline: 8404855555 • Conductor &amp; Platform Support</div>
+            </div>
+          </div>
+          <div className="text-xs text-gray-300 sm:text-right font-medium">
+            Quote PNR <strong className="text-[#73d200] font-mono text-sm">{booking.pnr}</strong> for priority help
           </div>
         </div>
 

@@ -5,6 +5,7 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import ETicketCard from '../components/ticket/ETicketCard';
 import BookingConfirmationPage from '../pages/BookingConfirmationPage';
 import * as bookingService from '../services/booking.service';
+import * as pdfGenerator from '../utils/pdfTicketGenerator';
 
 const sampleBooking = {
   id: 'bkg-101',
@@ -77,10 +78,10 @@ describe('E-Ticket & Booking Confirmation Suite', () => {
     it('renders PNR, carrier, coach specifications, and formatted timeline', async () => {
       render(<ETicketCard booking={sampleBooking} />);
 
-      expect(screen.getByText('BUS-20261112-TEST')).toBeTruthy();
-      expect(screen.getByText(/Zingbus Express/)).toBeTruthy();
-      expect(screen.getByText('DL-01-AB-9999')).toBeTruthy();
-      expect(screen.getByText('AC Sleeper (2+1)')).toBeTruthy();
+      expect(screen.getAllByText('BUS-20261112-TEST').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(/Zingbus Express/).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('DL-01-AB-9999').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(/AC Sleeper \(2\+1\)/).length).toBeGreaterThanOrEqual(1);
 
       expect(screen.getAllByText('Delhi').length).toBeGreaterThanOrEqual(1);
       expect(screen.getAllByText('Jaipur').length).toBeGreaterThanOrEqual(1);
@@ -93,11 +94,11 @@ describe('E-Ticket & Booking Confirmation Suite', () => {
 
       expect(screen.getByText('Aman Sharma')).toBeTruthy();
       expect(screen.getByText(/26 yrs • MALE/)).toBeTruthy();
-      expect(screen.getByText('L1')).toBeTruthy();
+      expect(screen.getAllByText(/L1/).length).toBeGreaterThanOrEqual(1);
 
       expect(screen.getByText('Priya Sharma')).toBeTruthy();
       expect(screen.getByText(/24 yrs • FEMALE/)).toBeTruthy();
-      expect(screen.getByText('L2')).toBeTruthy();
+      expect(screen.getAllByText(/L2/).length).toBeGreaterThanOrEqual(1);
 
       expect(screen.getByText('₹1,365')).toBeTruthy();
       expect(screen.getByText('TXN-UPI-9876543210')).toBeTruthy();
@@ -142,6 +143,32 @@ describe('E-Ticket & Booking Confirmation Suite', () => {
       const printBtn = screen.getByRole('button', { name: /Print E-Ticket/i });
       fireEvent.click(printBtn);
       expect(printSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('triggers generateTicketPDF when Download PDF is clicked', async () => {
+      const pdfSpy = vi.spyOn(pdfGenerator, 'generateTicketPDF').mockResolvedValue('GoBus-Ticket.pdf');
+
+      render(
+        <MemoryRouter
+          initialEntries={[
+            {
+              pathname: '/booking/confirmation/BUS-20261112-TEST',
+              state: { booking: sampleBooking },
+            },
+          ]}
+        >
+          <Routes>
+            <Route
+              path="/booking/confirmation/:pnr"
+              element={<BookingConfirmationPage />}
+            />
+          </Routes>
+        </MemoryRouter>
+      );
+
+      const downloadBtn = screen.getByRole('button', { name: /Download PDF/i });
+      fireEvent.click(downloadBtn);
+      expect(pdfSpy).toHaveBeenCalledTimes(1);
     });
 
     it('hydrates booking from API service when visiting directly via URL param', async () => {

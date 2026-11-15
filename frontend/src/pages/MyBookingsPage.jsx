@@ -8,6 +8,7 @@ import {
   XCircleIcon,
   MagnifyingGlassIcon,
   PrinterIcon,
+  ArrowDownTrayIcon,
   ArrowRightIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -18,6 +19,7 @@ import { Button, Badge, Card, Alert } from '../components/ui';
 import CancellationModal from '../components/booking/CancellationModal';
 import { fetchMyBookings } from '../services/booking.service';
 import { formatClockTime, formatDateLong, formatDuration } from '../utils/dateUtils';
+import { generateTicketPDF } from '../utils/pdfTicketGenerator';
 
 const STATUS_TABS = [
   { id: '', label: 'All Bookings' },
@@ -323,6 +325,16 @@ export default function MyBookingsPage() {
                       </div>
 
                       <div className="flex flex-wrap items-center gap-2.5">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => generateTicketPDF(booking)}
+                          className="inline-flex items-center gap-1.5 cursor-pointer bg-white text-gray-800"
+                        >
+                          <ArrowDownTrayIcon className="w-3.5 h-3.5 text-gray-700" />
+                          PDF Ticket
+                        </Button>
+
                         <Button
                           variant="outline"
                           size="sm"
