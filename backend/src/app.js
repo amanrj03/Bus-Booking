@@ -19,7 +19,7 @@ const corsOptions = {
     if (!origin) return callback(null, true);
 
     const cleanOrigin = origin.replace(/\/+$/, '');
-    // Allow if in explicitly listed origins, ends with .vercel.app, or localhost
+    // Allow if in explicitly listed origins, ends with .vercel.app, localhost, or any web client
     const isAllowed =
       allowedOrigins.includes(cleanOrigin) ||
       cleanOrigin.endsWith('.vercel.app') ||
@@ -29,11 +29,10 @@ const corsOptions = {
     if (isAllowed || config.nodeEnv !== 'production') {
       return callback(null, true);
     }
-    return callback(new Error(`Not allowed by CORS: ${origin}`));
+    return callback(null, true);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 };
 
 app.use(cors(corsOptions));
