@@ -21,16 +21,20 @@ function createAdapter(rawConnectionString) {
 
   const connectionString = sanitizeConnectionString(rawConnectionString);
 
-  // If connecting to Neon or running in serverless edge, use Neon WebSocket/HTTP adapter
+  // If connecting to Neon or running in serverless edge, use Neon WebSocket adapter
   if (connectionString.includes('neon.tech') || (typeof globalThis !== 'undefined' && globalThis.__CF_ENV__)) {
-    try {
-      const { Pool } = require('@neondatabase/serverless');
-      const { PrismaNeon } = require('@prisma/adapter-neon');
-      const pool = new Pool({ connectionString });
-      return new PrismaNeon(pool);
-    } catch (e) {
-      console.error('[PrismaAdapter] Error creating PrismaNeon adapter:', e.message);
+    if (typeof WebSocket !== 'undefined') {
+      try {
+        const { neonConfig } = require('@neondatabase/serverless');
+        if (!neonConfig.webSocketConstructor) {
+          neonConfig.webSocketConstructor = WebSocket;
+        }
+      } catch {}
     }
+
+    const { PrismaNeon } = require('@prisma/adapter-neon');
+    // In Prisma 7, PrismaNeon accepts the connection config object { connectionString } directly
+    return new PrismaNeon({ connectionString });
   }
 
   // Standard pg driver adapter for local PostgreSQL

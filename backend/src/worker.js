@@ -7,6 +7,7 @@ if (typeof env !== 'undefined' && env) {
   if (env.DATABASE_URL) process.env.DATABASE_URL = env.DATABASE_URL;
   if (env.JWT_SECRET) process.env.JWT_SECRET = env.JWT_SECRET;
   if (env.FRONTEND_URL) process.env.FRONTEND_URL = env.FRONTEND_URL;
+  if (env.NODE_ENV) process.env.NODE_ENV = env.NODE_ENV;
 }
 
 import app from './app';
@@ -22,6 +23,7 @@ export default {
       if (activeEnv.DATABASE_URL) process.env.DATABASE_URL = activeEnv.DATABASE_URL;
       if (activeEnv.JWT_SECRET) process.env.JWT_SECRET = activeEnv.JWT_SECRET;
       if (activeEnv.FRONTEND_URL) process.env.FRONTEND_URL = activeEnv.FRONTEND_URL;
+      if (activeEnv.NODE_ENV) process.env.NODE_ENV = activeEnv.NODE_ENV;
     }
     return handler.fetch(request, activeEnv, ctx);
   },
