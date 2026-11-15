@@ -1,7 +1,13 @@
 import axios from 'axios';
 
+// Normalize baseURL so both `https://api.domain.com` and `https://api.domain.com/api/v1` work without 404s
+const rawBaseURL = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.trim().replace(/\/+$/, '') : '';
+const normalizedBaseURL = rawBaseURL
+  ? (rawBaseURL.endsWith('/api/v1') ? rawBaseURL : `${rawBaseURL}/api/v1`)
+  : '/api/v1';
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api/v1',
+  baseURL: normalizedBaseURL,
   headers: {
     'Content-Type': 'application/json',
   },
