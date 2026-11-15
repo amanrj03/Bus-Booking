@@ -34,14 +34,32 @@ router.get('/db', async (req, res) => {
     ? rawUrl.split('@')[1].split('/')[0]
     : 'not-set';
 
+  const cfEnv = typeof globalThis !== 'undefined' && globalThis.__CF_ENV__ ? globalThis.__CF_ENV__ : null;
+  const cfDbUrl = cfEnv?.DATABASE_URL || '';
+  const procDbUrl = process.env.DATABASE_URL || '';
+  const resolvedDbUrl = config.databaseUrl || '';
+
+  const maskUrl = (str) => {
+    if (!str) return 'empty';
+    if (str.includes('@')) {
+      const parts = str.split('@');
+      return parts[0].slice(0, 12) + '...***@' + parts[1].split('/')[0];
+    }
+    return str.slice(0, 20);
+  };
+
   const payload = {
     connected: dbHealth.isConnected,
     latencyMs: dbHealth.latencyMs || null,
     error: dbHealth.error || null,
     diagnostics: {
-      isEdgeRuntime: typeof globalThis !== 'undefined' && Boolean(globalThis.__CF_ENV__),
-      boundKeys: typeof globalThis !== 'undefined' && globalThis.__CF_ENV__ ? Object.keys(globalThis.__CF_ENV__) : [],
-      activeDatabaseHost: maskedHost,
+      isEdgeRuntime: Boolean(cfEnv),
+      boundKeys: cfEnv ? Object.keys(cfEnv) : [],
+      cfDatabaseUrlFound: Boolean(cfDbUrl),
+      cfDatabaseUrlMasked: maskUrl(cfDbUrl),
+      procDatabaseUrlFound: Boolean(procDbUrl),
+      procDatabaseUrlMasked: maskUrl(procDbUrl),
+      resolvedHost: maskedHost,
     },
     seedMetrics: seedMetrics.counts || null,
     isSeeded: seedMetrics.isSeeded,
