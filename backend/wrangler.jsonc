@@ -6,8 +6,5 @@
   "compatibility_flags": [
     "nodejs_compat"
   ],
-  "vars": {
-    "NODE_ENV": "production",
-    "FRONTEND_URL": "https://bus-booking-frontend-orpin.vercel.app"
-  }
+  "vars": {}
 }
